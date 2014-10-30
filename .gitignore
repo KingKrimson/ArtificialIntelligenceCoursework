@@ -14,6 +14,16 @@ $RECYCLE.BIN/
 *.msm
 *.msp
 
+# CSV results.
+
+results*.csv
+
+# build stuff
+
+*.jar
+*.class
+
+
 # =========================
 # Operating System Files
 # =========================
