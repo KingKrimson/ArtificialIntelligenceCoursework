@@ -28,7 +28,7 @@ public class GeneticAlgorithm {
 
     public enum FitnessType {
 
-        TOTAL_VALUE, LOOKUP_TABLE, RULE_SET, MLP
+        TOTAL_VALUE, LOOKUP_TABLE, RULE_SET_INT, RULE_SET_FLOAT, MLP
     }
 
     public enum GenomeType {
@@ -51,6 +51,30 @@ public class GeneticAlgorithm {
 
         geneticAlgorithm(initialGeneration, FitnessType.TOTAL_VALUE);
 
+    }
+    
+    public static void prototypeSet(FitnessType fit, GenomeType genome) {
+        ArrayList<CandidateSolution> initialGeneration = new ArrayList<>(POP);
+
+        for (int i = 0; i < POP; i++) {
+            CandidateSolution individual = new BinaryCandidateSolution(GenomeHelper.generateBitGenome(G_LENGTH));
+            FitnessFunctions.calculateFitnessTotalValue(individual);
+            initialGeneration.add(individual);
+        }
+
+        geneticAlgorithm(initialGeneration, fit);
+    }
+    
+    public static void dataSet1(FitnessType fit, GenomeType genome) {
+        geneticAlgorithm(initialGeneration, fit);
+    }
+    
+    public static void dataSet2(FitnessType fit, GenomeType genome) {
+        geneticAlgorithm(initialGeneration, fit);
+    }
+            
+    public static void dataSet3(FitnessType fit, GenomeType genome) {
+        geneticAlgorithm(initialGeneration, fit);
     }
 
     public static void geneticAlgorithm(ArrayList<CandidateSolution> oldGeneration, FitnessType fit) {
@@ -92,9 +116,11 @@ public class GeneticAlgorithm {
                     case LOOKUP_TABLE:
                         FitnessFunctions.calculateFitnessLookupTable(child, null);
                         break;
-                    case RULE_SET:
+                    case RULE_SET_INT:
                         FitnessFunctions.calculateFitnessRuleSet(child, null);
                         break;
+                    case RULE_SET_FLOAT:
+                        FitnessFunctions.calculateFitnessRuleSet(child, null);
                     case MLP:
                         FitnessFunctions.calculateFitnessMLP();
                         break;
