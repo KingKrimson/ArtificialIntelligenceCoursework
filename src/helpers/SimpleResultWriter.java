@@ -37,7 +37,7 @@ public class SimpleResultWriter {
         SimpleDateFormat currentDateFormat = new SimpleDateFormat("dd_MM_yy_HH_mm_ss");
         String currentDateString = currentDateFormat.format(currentDate);
         
-        results = new File("H:/NetBeansProjects/geneticAlgorithm/results/results_"+ currentDateString + ".csv");
+        results = new File("results/results_"+ currentDateString + ".csv").getAbsoluteFile();
         
         writer = new BufferedWriter(new FileWriter(results));
         writer.write("sep=|"); // set excel delimiter

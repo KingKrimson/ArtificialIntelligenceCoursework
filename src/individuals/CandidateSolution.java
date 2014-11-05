@@ -68,4 +68,13 @@ public abstract class CandidateSolution<T> implements Comparable<CandidateSoluti
             return MORE;
         }
     }
+    
+    @Override
+    public String toString() {
+        String genomeString = "";
+        for (T element : genome) {
+            genomeString += element.toString();
+        }
+        return genomeString;
+    }
 }

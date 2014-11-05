@@ -73,4 +73,5 @@ public class BinaryCandidateSolution extends CandidateSolution<Integer> {
         this.setFitness(currentFitness);
         return currentFitness;
     }
+    
 }

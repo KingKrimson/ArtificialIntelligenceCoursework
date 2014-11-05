@@ -11,8 +11,12 @@ import helpers.SimpleResultWriter;
 import helpers.GenomeHelper;
 import individuals.CandidateSolution;
 import individuals.BinaryCandidateSolution;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Random;
+import java.util.Scanner;
 
 /**
  *
@@ -41,15 +45,7 @@ public class GeneticAlgorithm {
      */
     public static void main(String[] args) {
 
-        ArrayList<CandidateSolution> initialGeneration = new ArrayList<>(POP);
-
-        for (int i = 0; i < POP; i++) {
-            CandidateSolution individual = new BinaryCandidateSolution(GenomeHelper.generateBitGenome(G_LENGTH));
-            FitnessFunctions.calculateFitnessTotalValue(individual);
-            initialGeneration.add(individual);
-        }
-
-        geneticAlgorithm(initialGeneration, FitnessType.TOTAL_VALUE);
+        prototypeSet(FitnessType.TOTAL_VALUE, GenomeType.BIT);
 
     }
     
@@ -65,16 +61,50 @@ public class GeneticAlgorithm {
         geneticAlgorithm(initialGeneration, fit);
     }
     
-    public static void dataSet1(FitnessType fit, GenomeType genome) {
-        geneticAlgorithm(initialGeneration, fit);
+    public static void dataSet1(FitnessType fit, GenomeType genome) 
+        throws FileNotFoundException{
+        HashMap<String, String> lookup = readData("data1.txt");
+        //geneticAlgorithm(initialGeneration, fit);
     }
     
-    public static void dataSet2(FitnessType fit, GenomeType genome) {
-        geneticAlgorithm(initialGeneration, fit);
+    public static void dataSet2(FitnessType fit, GenomeType genome) 
+    throws FileNotFoundException {
+        HashMap<String, String> lookup = readData("data2.txt");
+        //geneticAlgorithm(initialGeneration, fit);
     }
             
-    public static void dataSet3(FitnessType fit, GenomeType genome) {
-        geneticAlgorithm(initialGeneration, fit);
+    public static void dataSet3(FitnessType fit, GenomeType genome) 
+    throws FileNotFoundException {
+        HashMap<String, String> lookup = readData("data3.txt");
+        //geneticAlgorithm(initialGeneration, fit);
+    }
+    
+    public static HashMap<String, String> readData(String name) 
+        throws FileNotFoundException {
+        File file = new File("data/" + name).getAbsoluteFile();
+        Scanner scan = new Scanner(file);
+        
+        HashMap<String, String> lookup = new HashMap<>();
+        
+        if (scan.hasNextLine()) {
+            scan.nextLine(); // get rid of header, I don't need it.
+        }
+        
+        while (scan.hasNextLine()) {
+            String line = scan.nextLine();
+            String[] words = line.split(" "); // split on space.
+            String key = "";
+            for (int i = 0; i < words.length; i++) {
+                if (i == (words.length - 1)) {
+                    key = key.trim();
+                    lookup.put(key, words[i]);
+                } else {
+                    key += words[i] + " ";
+                }
+            }
+        }
+        
+        return lookup;
     }
 
     public static void geneticAlgorithm(ArrayList<CandidateSolution> oldGeneration, FitnessType fit) {
