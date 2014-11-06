@@ -6,10 +6,8 @@
 
 package individuals;
 
-import individuals.CandidateSolution;
-import individuals.BinaryCandidateSolution;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.Random;
 
 /**
@@ -24,7 +22,7 @@ public class LookupCandidateSolution extends CandidateSolution<Integer> {
     
     @Override
     public int calculateFitness(Object o) {
-        HashMap<String, String> lookupTable = (HashMap<String, String>) o;
+        TreeMap<String, String> lookupTable = (TreeMap<String, String>) o;
         int currentFitness = 0;
         int i = 0;
         

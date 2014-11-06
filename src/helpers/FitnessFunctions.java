@@ -7,9 +7,10 @@
 package helpers;
 
 import individuals.CandidateSolution;
-import individuals.CandidateSolution;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
 /**
  *
@@ -29,20 +30,35 @@ public class FitnessFunctions {
         return fitness;
     }
     
-    public static int calculateFitnessLookupTable(CandidateSolution individual, HashMap lookup) {
+    public static int calculateFitnessLookupTable(CandidateSolution individual, TreeMap<String, String> lookup) {
         int fitness = 0;
+        final ArrayList<Integer> genome = individual.getGenome();
+        Object[] keyArray = lookup.keySet().toArray();
         
+        for (int i = 0; i < genome.size(); i++) {
+            String predictedAnswer = genome.get(i).toString();
+            String actualAnswer = lookup.get((String)keyArray[i]);
+                    
+            if (actualAnswer.equals(predictedAnswer)) {
+                fitness++;
+            }
+        }
+        
+        individual.setFitness(fitness);
         return fitness;
     }
     
-    public static int calculateFitnessRuleSet(CandidateSolution individual, HashMap lookup) {
+    public static int calculateFitnessRuleSet(CandidateSolution individual, Map lookup) {
         int fitness = 0;
         
+        individual.setFitness(fitness);
         return fitness;
     }
     
-    public static int calculateFitnessMLP() {
+    public static int calculateFitnessMLP(CandidateSolution individual, Map lookup) {
         int fitness = 0;
+        
+        individual.setFitness(fitness);
         return fitness;
     }
 }

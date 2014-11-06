@@ -11,10 +11,12 @@ import helpers.SimpleResultWriter;
 import helpers.GenomeHelper;
 import individuals.CandidateSolution;
 import individuals.BinaryCandidateSolution;
+import individuals.LookupCandidateSolution;
+import individuals.RuleSetCandidateSolution;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -25,7 +27,7 @@ import java.util.Scanner;
 public class GeneticAlgorithm {
 
     final static int POP = 64;
-    final static int G_LENGTH = 50;
+    final static int G_LENGTH = 10;
     final static int NUM_GENERATIONS = 50;
     final static double M_RATE = 0.01;
     final static boolean FULL_PRINT = false;
@@ -44,9 +46,14 @@ public class GeneticAlgorithm {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-
-        prototypeSet(FitnessType.TOTAL_VALUE, GenomeType.BIT);
-
+        try {
+            prototypeSet(FitnessType.TOTAL_VALUE, GenomeType.BIT);
+            //dataSet1(FitnessType.LOOKUP_TABLE, GenomeType.BIT);
+            //dataSet2(FitnessType.RULE_SET_INT, GenomeType.RULE_SET_INT);
+            //dataSet3(FitnessType.MLP, GenomeType.MLP);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
     
     public static void prototypeSet(FitnessType fit, GenomeType genome) {
@@ -58,33 +65,52 @@ public class GeneticAlgorithm {
             initialGeneration.add(individual);
         }
 
-        geneticAlgorithm(initialGeneration, fit);
+        geneticAlgorithm(initialGeneration, null, fit);
     }
     
     public static void dataSet1(FitnessType fit, GenomeType genome) 
         throws FileNotFoundException{
-        HashMap<String, String> lookup = readData("data1.txt");
-        //geneticAlgorithm(initialGeneration, fit);
+        TreeMap<String, String> lookup = readData("data1.txt");
+        ArrayList<CandidateSolution> initialGeneration = new ArrayList<>(POP);
+        
+        for (int i = 0; i < POP; i++) {
+            CandidateSolution individual;
+            switch (genome) {
+                case BIT:
+                    individual = new LookupCandidateSolution(GenomeHelper.generateBitGenome(64));
+                    FitnessFunctions.calculateFitnessLookupTable(individual, lookup);
+                    break;
+                case RULE_SET:
+                    individual = new RuleSetCandidateSolution(GenomeHelper.generateRuleGenome(G_LENGTH * 7)); // generate G_LENGTH rules.
+                    break;
+                default:
+                    throw new RuntimeException("dataSet1 requires GenomeType to be BIT or RULE_SET. Actual type: " + genome.name());
+            }
+            
+            initialGeneration.add(individual);
+        }
+        
+        geneticAlgorithm(initialGeneration, lookup, fit);
     }
     
     public static void dataSet2(FitnessType fit, GenomeType genome) 
     throws FileNotFoundException {
-        HashMap<String, String> lookup = readData("data2.txt");
+        TreeMap<String, String> lookup = readData("data2.txt");
         //geneticAlgorithm(initialGeneration, fit);
     }
             
     public static void dataSet3(FitnessType fit, GenomeType genome) 
     throws FileNotFoundException {
-        HashMap<String, String> lookup = readData("data3.txt");
+        TreeMap<String, String> lookup = readData("data3.txt");
         //geneticAlgorithm(initialGeneration, fit);
     }
     
-    public static HashMap<String, String> readData(String name) 
+    public static TreeMap<String, String> readData(String name) 
         throws FileNotFoundException {
         File file = new File("data/" + name).getAbsoluteFile();
         Scanner scan = new Scanner(file);
         
-        HashMap<String, String> lookup = new HashMap<>();
+        TreeMap<String, String> lookup = new TreeMap<>();
         
         if (scan.hasNextLine()) {
             scan.nextLine(); // get rid of header, I don't need it.
@@ -107,14 +133,14 @@ public class GeneticAlgorithm {
         return lookup;
     }
 
-    public static void geneticAlgorithm(ArrayList<CandidateSolution> oldGeneration, FitnessType fit) {
+    public static void geneticAlgorithm(ArrayList<CandidateSolution> oldGeneration, TreeMap<String, String> lookup, FitnessType fit) {
         try {
             SimpleResultWriter resultWriter = new SimpleResultWriter(POP, G_LENGTH, true);
             resultWriter.write(0, oldGeneration);
 
             ArrayList<CandidateSolution> newGeneration;
             for (int i = 0; i < NUM_GENERATIONS; i++) {
-                newGeneration = newGeneration(oldGeneration, fit);
+                newGeneration = newGeneration(oldGeneration, lookup, fit);
                 resultWriter.write((i + 1), newGeneration);
                 oldGeneration = newGeneration;
             }
@@ -124,7 +150,7 @@ public class GeneticAlgorithm {
         }
     }
 
-    public static ArrayList<CandidateSolution> newGeneration(ArrayList<CandidateSolution> oldGeneration, FitnessType fit) {
+    public static ArrayList<CandidateSolution> newGeneration(ArrayList<CandidateSolution> oldGeneration, TreeMap<String, String> lookup, FitnessType fit) {
         ArrayList<CandidateSolution> parents = SelectionAlgorithms.tournamentSelection(oldGeneration, POP);
         ArrayList<CandidateSolution> newGeneration = new ArrayList<>();
         Random rand = new Random();
@@ -144,15 +170,15 @@ public class GeneticAlgorithm {
                         FitnessFunctions.calculateFitnessTotalValue(child);
                         break;
                     case LOOKUP_TABLE:
-                        FitnessFunctions.calculateFitnessLookupTable(child, null);
+                        FitnessFunctions.calculateFitnessLookupTable(child, lookup);
                         break;
                     case RULE_SET_INT:
-                        FitnessFunctions.calculateFitnessRuleSet(child, null);
+                        FitnessFunctions.calculateFitnessRuleSet(child, lookup);
                         break;
                     case RULE_SET_FLOAT:
-                        FitnessFunctions.calculateFitnessRuleSet(child, null);
+                        FitnessFunctions.calculateFitnessRuleSet(child, lookup);
                     case MLP:
-                        FitnessFunctions.calculateFitnessMLP();
+                        FitnessFunctions.calculateFitnessMLP(child, lookup);
                         break;
                 }
                 newGeneration.add(child);

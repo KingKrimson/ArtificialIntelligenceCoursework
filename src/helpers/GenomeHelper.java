@@ -34,6 +34,35 @@ public class GenomeHelper {
         return genome;
     }
     
+    public static ArrayList<Integer> generateRuleGenome(int size) {
+        Random randGen = new Random();
+        Double rand;
+        ArrayList<Integer> genome = new ArrayList<>();
+        
+        for(int i = 0; i < size; i++) {
+            rand = randGen.nextDouble();
+            
+            // don't let the answer be a wildcard.
+            if (size % (i + 1) == 0) {
+                if (rand < 0.5) {
+                    genome.add(0);
+                } else {
+                    genome.add(1);  
+                }
+            } else {
+                if (rand < 0.333) {
+                    genome.add(0);
+                } else if (rand < 0.666) {
+                    genome.add(1);
+                } else {
+                    genome.add(2);
+                }
+            }
+        }
+        
+        return genome;
+    }
+    
     public static ArrayList<Integer> generateIntGenome(int size, int min, int max) {
         Random randGen = new Random();
         int rand;
