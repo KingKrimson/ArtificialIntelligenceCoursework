@@ -50,6 +50,12 @@ public class FitnessFunctions {
     
     public static int calculateFitnessRuleSet(CandidateSolution individual, Map lookup) {
         int fitness = 0;
+        ArrayList<String> conditions = new ArrayList<>();
+        ArrayList<String> Actions = new ArrayList<>();
+        
+        // arrange genome into rules so that we can 
+        // sort rules based on how many wildcards they have.
+        // test against training set.
         
         individual.setFitness(fitness);
         return fitness;
