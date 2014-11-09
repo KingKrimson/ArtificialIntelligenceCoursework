@@ -63,13 +63,13 @@ public class Rule implements Comparable<Rule> {
         int myWildcards = 0;
         int otherWildcards = 0;
         
-        for (char character : this.action.toCharArray()) {
+        for (char character : this.condition.toCharArray()) {
             if (character == '2') {
                 myWildcards++;
             }
         }
         
-        for (char character : otherRule.action.toCharArray()) {
+        for (char character : otherRule.condition.toCharArray()) {
             if (character == '2') {
                 otherWildcards++;
             }

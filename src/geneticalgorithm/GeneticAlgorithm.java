@@ -27,11 +27,11 @@ import java.util.Scanner;
  */
 public class GeneticAlgorithm {
 
-    final static int POP = 64;
-    final static int G_LENGTH = 10;
-    final static int NUM_GENERATIONS = 50;
-    final static double M_RATE = 0.01;
-    final static boolean FULL_PRINT = false;
+    final static int POP = 100; // How many individuals are in the population.
+    final static int G_LENGTH = 10; // length of genome. For rules, this is number of rules, not bits.
+    final static int NUM_GENERATIONS = 100; // how many generations to run for? Considering adding a stop condition, so this many not stick around for long.
+    final static double M_RATE = (double)1/G_LENGTH; // Mutation rate. Inverse of gene length. For rules, multiplied so it mutates bit strings.
+    final static boolean FULL_PRINT = false; // verbose mode.
 
     public enum FitnessType {
 
@@ -49,9 +49,9 @@ public class GeneticAlgorithm {
     public static void main(String[] args) {
         try {
             //prototypeSet(FitnessType.TOTAL_VALUE, GenomeType.BIT);
-            dataSet1(FitnessType.LOOKUP_TABLE, GenomeType.BIT);
-            //dateSet1(FitnessType.RULE_SET_INT, GenomeType.RULE_SET_INT);
-            //dataSet2(FitnessType.RULE_SET_INT, GenomeType.RULE_SET_INT);
+            //dataSet1(FitnessType.LOOKUP_TABLE, GenomeType.BIT);
+            dataSet1(FitnessType.RULE_SET_INT, GenomeType.RULE_SET);
+            //dataSet2(FitnessType.RULE_SET_INT, GenomeType.RULE_SET);
             //dataSet3(FitnessType.MLP, GenomeType.MLP);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -82,8 +82,8 @@ public class GeneticAlgorithm {
                     // in this case, the data can't be seperated 
                     // without breaking the training, as the lookup method is
                     // just a noddy example.
-                    trainingData = new TreeMap<String, String>(fullLookup);
-                    realData = new TreeMap<String, String>(fullLookup);
+                    trainingData = new TreeMap<>(fullLookup);
+                    realData = new TreeMap<>(fullLookup);
                     break; 
                 case RULE_SET:
                     TreeMap[] maps = getTrainingData(fullLookup, 0.8);
@@ -102,8 +102,8 @@ public class GeneticAlgorithm {
                     FitnessFunctions.calculateFitnessLookupTable(individual, trainingData);
                     break;
                 case RULE_SET:
-                    individual = new RuleSetCandidateSolution(GenomeHelper.generateRuleGenome(G_LENGTH * 7)); // generate G_LENGTH rules.
-                    FitnessFunctions.calculateFitnessLookupTable(individual, trainingData);
+                    individual = new RuleSetCandidateSolution(GenomeHelper.generateRuleGenome(G_LENGTH, 7)); // generate G_LENGTH rules.
+                    FitnessFunctions.calculateFitnessRuleSet(individual, trainingData);
                     break;
                 default:
                     throw new RuntimeException("dataSet1 requires GenomeType to be BIT or RULE_SET. Actual type: " + genome.name());
@@ -138,7 +138,7 @@ public class GeneticAlgorithm {
             CandidateSolution individual;
             switch (genome) {
                 case RULE_SET:
-                    individual = new RuleSetCandidateSolution(GenomeHelper.generateRuleGenome(G_LENGTH * 12)); // generate G_LENGTH rules.
+                    individual = new RuleSetCandidateSolution(GenomeHelper.generateRuleGenome(G_LENGTH, 12)); // generate G_LENGTH rules.
                     FitnessFunctions.calculateFitnessLookupTable(individual, trainingData);
                     break;
                 case MLP:
@@ -251,17 +251,18 @@ public class GeneticAlgorithm {
         ArrayList<CandidateSolution> parents = SelectionAlgorithms.tournamentSelection(oldGeneration, POP);
         ArrayList<CandidateSolution> newGeneration = new ArrayList<>();
         Random rand = new Random();
-
+        double mutation_rate = (fit == FitnessType.RULE_SET_INT) ? (M_RATE / (parents.get(0).getGenome().size()/G_LENGTH)) : M_RATE;
+        
         for (int i = 0; i < parents.size(); i = i + 2) {
             CandidateSolution[] currentParents = new CandidateSolution[2];
             currentParents[0] = parents.get(i);
             currentParents[1] = parents.get(i + 1);
             int point = rand.nextInt(currentParents[0].getSize());
-
             for (int j = 0; j <= 1; j++) {
                 int k = (j == 0) ? 1 : 0; // j == 0, k == 1 and j == 1, k == 0.
                 CandidateSolution child = currentParents[j].crossover(point, currentParents[k]);
-                child.mutation(M_RATE);
+                
+                child.mutation(mutation_rate);
                 switch (fit) {
                     case TOTAL_VALUE:
                         FitnessFunctions.calculateFitnessTotalValue(child);
@@ -337,16 +338,27 @@ public class GeneticAlgorithm {
         }
         
         int totalPassed = realPassed + trainingPassed;
+        
         int realFailed = realData.size() - realPassed;
         int trainingFailed = trainingData.size() - trainingPassed;
         int totalFailed = realFailed + trainingFailed;
         
+        int realPercentagePass = (int)Math.ceil(((double)realPassed/realData.size()) * 100);
+        int realPercentageFail = 100 - realPercentagePass;
+        int trainingPercentagePass = (int)Math.ceil(((double)trainingPassed/trainingData.size()) * 100);
+        int trainingPercentageFail = 100 - trainingPercentagePass;
+        int totalPercentagePass = (int)Math.ceil(((double)totalPassed/(trainingData.size()+realData.size())) * 100);
+        int totalPercentageFail = 100 - totalPercentagePass;
+        
         System.out.println("\nFinal Results:\n");
         System.out.println("Real data:\nPASS: " + realPassed + "\nFAIL: " + realFailed + "\nTOTAL: " + realData.size());
+        System.out.println("PERCENT PASSED: " + realPercentagePass + "%\nPERCENT FAILED: " + realPercentageFail + "%");
         System.out.println("");
         System.out.println("Training data:\nPASS: " + trainingPassed + "\nFAIL: " + trainingFailed + "\nTOTAL: " + trainingData.size());
+        System.out.println("PERCENT PASSED: " + trainingPercentagePass + "%\nPERCENT FAILED: " + trainingPercentageFail + "%");
         System.out.println("");
         System.out.println("Total data:\nPASS: " + totalPassed + "\nFAIL: " + totalFailed + "\nTOTAL: " + (realData.size() + trainingData.size()));
+        System.out.println("PERCENT PASSED: " + totalPercentagePass + "%\nPERCENT FAILED: " + totalPercentageFail + "%");
         System.out.println("");
         
         if (totalFailed != 0) {

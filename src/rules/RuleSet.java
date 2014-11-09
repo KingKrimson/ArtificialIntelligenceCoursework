@@ -17,10 +17,10 @@ public class RuleSet {
     
     public RuleSet(String RuleSet, int ruleLength) {
         ruleSet = new ArrayList<>();
-        for (int i = 0; i < RuleSet.length(); i *= ruleLength) {
+        for (int i = 0; i < RuleSet.length(); i += ruleLength) {
             ruleSet.add(new Rule(RuleSet.substring(i, i + ruleLength)));
         }
-        sortRuleSet();
+        Collections.sort(ruleSet);
     }
     
     public String testRuleSet(String testString) {
@@ -34,11 +34,6 @@ public class RuleSet {
         }
         
         return result;
-    }
-    
-    // Sort ruleSet by the number of wildcards the rules have. Lowest == first.
-    private void sortRuleSet() {
-        Collections.sort(ruleSet);
     }
 
 }
