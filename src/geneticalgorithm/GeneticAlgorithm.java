@@ -48,8 +48,9 @@ public class GeneticAlgorithm {
      */
     public static void main(String[] args) {
         try {
-            prototypeSet(FitnessType.TOTAL_VALUE, GenomeType.BIT);
-            //dataSet1(FitnessType.LOOKUP_TABLE, GenomeType.BIT);
+            //prototypeSet(FitnessType.TOTAL_VALUE, GenomeType.BIT);
+            dataSet1(FitnessType.LOOKUP_TABLE, GenomeType.BIT);
+            //dateSet1(FitnessType.RULE_SET_INT, GenomeType.RULE_SET_INT);
             //dataSet2(FitnessType.RULE_SET_INT, GenomeType.RULE_SET_INT);
             //dataSet3(FitnessType.MLP, GenomeType.MLP);
         } catch (Exception e) {
@@ -340,11 +341,12 @@ public class GeneticAlgorithm {
         int trainingFailed = trainingData.size() - trainingPassed;
         int totalFailed = realFailed + trainingFailed;
         
-        System.out.println("Real data:\nPASS: " + realPassed + "\nFAIL: " + realFailed + "TOTAL: " + realData.size());
+        System.out.println("\nFinal Results:\n");
+        System.out.println("Real data:\nPASS: " + realPassed + "\nFAIL: " + realFailed + "\nTOTAL: " + realData.size());
         System.out.println("");
-        System.out.println("Training data:\nPASS: " + trainingPassed + "\nFAIL: " + trainingFailed + "TOTAL: " + trainingData.size());
+        System.out.println("Training data:\nPASS: " + trainingPassed + "\nFAIL: " + trainingFailed + "\nTOTAL: " + trainingData.size());
         System.out.println("");
-        System.out.println("Total data:\nPASS: " + totalPassed + "\nFAIL: " + totalFailed + "TOTAL: " + realData.size() + trainingData.size());
+        System.out.println("Total data:\nPASS: " + totalPassed + "\nFAIL: " + totalFailed + "\nTOTAL: " + (realData.size() + trainingData.size()));
         System.out.println("");
         
         if (totalFailed != 0) {
