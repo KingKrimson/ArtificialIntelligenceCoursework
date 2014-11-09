@@ -9,8 +9,8 @@ package helpers;
 import individuals.CandidateSolution;
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
+import rules.RuleSet;
 
 /**
  *
@@ -48,14 +48,25 @@ public class FitnessFunctions {
         return fitness;
     }
     
-    public static int calculateFitnessRuleSet(CandidateSolution individual, Map lookup) {
+    public static int calculateFitnessRuleSet(CandidateSolution individual, TreeMap<String, String> lookup) {
         int fitness = 0;
-        ArrayList<String> conditions = new ArrayList<>();
-        ArrayList<String> Actions = new ArrayList<>();
-        
-        // arrange genome into rules so that we can 
-        // sort rules based on how many wildcards they have.
-        // test against training set.
+        RuleSet ruleSet; 
+        if (lookup.size() <= 64) {
+            ruleSet = new RuleSet(individual.toString(), 7);
+        } else {
+            ruleSet = new RuleSet(individual.toString(), 12);
+        }
+        Object[] keyArray = lookup.keySet().toArray();
+         
+         for (Object k : keyArray) {
+             String key = (String)k;
+             String predictedAnswer = ruleSet.testRuleSet(key);
+             String actualAnswer = lookup.get(key);
+             
+             if (predictedAnswer != null && predictedAnswer.equals(actualAnswer)) {
+                 fitness++;
+             }
+         }
         
         individual.setFitness(fitness);
         return fitness;

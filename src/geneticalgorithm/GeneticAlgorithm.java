@@ -75,8 +75,6 @@ public class GeneticAlgorithm {
         TreeMap<String, String> realData  = null;
         ArrayList<CandidateSolution> initialGeneration = new ArrayList<>(POP);
         
-
-        
         for (int i = 0; i < POP; i++) {
             CandidateSolution individual;
             switch (genome) {
