@@ -29,18 +29,21 @@ public class GeneticAlgorithm {
 
     final static int POP = 100; // How many individuals are in the population.
     final static int G_LENGTH = 10; // length of genome. For rules, this is number of rules, not bits.
-    final static int NUM_GENERATIONS = 100; // how many generations to run for? Considering adding a stop condition, so this many not stick around for long.
+    final static int NUM_GENERATIONS = 5000; //MAXIMUM number of generations. May stop beforehand.
+    final static int STOP_GENERATIONS = 30; // number of generations to stop after max fitness has been acheived.
     final static double M_RATE = (double)1/G_LENGTH; // Mutation rate. Inverse of gene length. For rules, multiplied so it mutates bit strings.
     final static boolean FULL_PRINT = false; // verbose mode.
 
     public enum FitnessType {
-
         TOTAL_VALUE, LOOKUP_TABLE, RULE_SET_INT, RULE_SET_FLOAT, MLP
     }
 
     public enum GenomeType {
-
         BIT, RULE_SET, MLP
+    }
+    
+    public enum SelectionType {
+        TOURNAMENT, ROULETTE
     }
 
     /**
@@ -48,17 +51,17 @@ public class GeneticAlgorithm {
      */
     public static void main(String[] args) {
         try {
-            //prototypeSet(FitnessType.TOTAL_VALUE, GenomeType.BIT);
-            //dataSet1(FitnessType.LOOKUP_TABLE, GenomeType.BIT);
-            dataSet1(FitnessType.RULE_SET_INT, GenomeType.RULE_SET);
-            //dataSet2(FitnessType.RULE_SET_INT, GenomeType.RULE_SET);
-            //dataSet3(FitnessType.MLP, GenomeType.MLP);
+            //prototypeSet(FitnessType.TOTAL_VALUE, GenomeType.BIT, SelectionType.TOURNAMENT);
+            //dataSet1(FitnessType.LOOKUP_TABLE, GenomeType.BIT, SelectionType.TOURNAMENT);
+            dataSet1(FitnessType.RULE_SET_INT, GenomeType.RULE_SET, SelectionType.TOURNAMENT);
+            //dataSet2(FitnessType.RULE_SET_INT, GenomeType.RULE_SET, SelectionType.TOURNAMENT);
+            //dataSet3(FitnessType.MLP, GenomeType.MLP, SelectionType.TOURNAMENT);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
     
-    public static void prototypeSet(FitnessType fit, GenomeType genome) {
+    public static void prototypeSet(FitnessType fit, GenomeType genome, SelectionType sel) {
         ArrayList<CandidateSolution> initialGeneration = new ArrayList<>(POP);
 
         for (int i = 0; i < POP; i++) {
@@ -67,10 +70,10 @@ public class GeneticAlgorithm {
             initialGeneration.add(individual);
         }
 
-        geneticAlgorithm(initialGeneration, null, fit);
+        geneticAlgorithm(initialGeneration, null, fit, sel);
     }
     
-    public static void dataSet1(FitnessType fit, GenomeType genome) 
+    public static void dataSet1(FitnessType fit, GenomeType genome, SelectionType sel) 
         throws FileNotFoundException{
         TreeMap<String, String> fullLookup = readData("data1.txt"); 
         TreeMap<String, String> trainingData = null;
@@ -112,11 +115,11 @@ public class GeneticAlgorithm {
             initialGeneration.add(individual);
         }
         
-        CandidateSolution bestSolution = geneticAlgorithm(initialGeneration, trainingData, fit); // train;
+        CandidateSolution bestSolution = geneticAlgorithm(initialGeneration, trainingData, fit, sel); // train;
         testRealData(bestSolution, realData, trainingData, fit); // test the best solution on the real data.
     }
     
-    public static void dataSet2(FitnessType fit, GenomeType genome) 
+    public static void dataSet2(FitnessType fit, GenomeType genome, SelectionType sel) 
     throws FileNotFoundException {
         TreeMap<String, String> fullLookup = readData("data2.txt"); 
         TreeMap<String, String> trainingData = null;
@@ -153,11 +156,11 @@ public class GeneticAlgorithm {
             initialGeneration.add(individual);
         }
         
-        CandidateSolution bestSolution = geneticAlgorithm(initialGeneration, trainingData, fit);
+        CandidateSolution bestSolution = geneticAlgorithm(initialGeneration, trainingData, fit, sel);
         testRealData(bestSolution, realData, trainingData, fit); // test the best solution on the real data.
     }
             
-    public static void dataSet3(FitnessType fit, GenomeType genome) 
+    public static void dataSet3(FitnessType fit, GenomeType genome, SelectionType sel) 
     throws FileNotFoundException {
         TreeMap<String, String> fullLookup = readData("data3.txt"); 
         TreeMap<String, String> trainingData = null;
@@ -189,7 +192,7 @@ public class GeneticAlgorithm {
             initialGeneration.add(individual);
         }
         
-        CandidateSolution bestSolution = geneticAlgorithm(initialGeneration, trainingData, fit);
+        CandidateSolution bestSolution = geneticAlgorithm(initialGeneration, trainingData, fit, sel);
         testRealData(bestSolution, realData, trainingData, fit); // test the best solution on the real data.
     }
     
@@ -221,16 +224,25 @@ public class GeneticAlgorithm {
         return lookup;
     }
 
-    public static CandidateSolution geneticAlgorithm(ArrayList<CandidateSolution> oldGeneration, TreeMap<String, String> lookup, FitnessType fit) {
+    public static CandidateSolution geneticAlgorithm(ArrayList<CandidateSolution> oldGeneration, TreeMap<String, String> lookup, FitnessType fit, SelectionType sel) {
         try {
             SimpleResultWriter resultWriter = new SimpleResultWriter(POP, G_LENGTH, true);
             resultWriter.write(0, oldGeneration);
 
             ArrayList<CandidateSolution> newGeneration;
+            int bestPossible = lookup.size();
+            int bestFitness = 0;
+            int count = 0;
             for (int i = 0; i < NUM_GENERATIONS; i++) {
-                newGeneration = newGeneration(oldGeneration, lookup, fit);
-                resultWriter.write((i + 1), newGeneration);
+                newGeneration = newGeneration(oldGeneration, lookup, fit, sel);
+                bestFitness = resultWriter.write((i + 1), newGeneration);
                 oldGeneration = newGeneration;
+                
+                count = (bestFitness == bestPossible) ? count + 1 : 0;
+                
+                if (count == STOP_GENERATIONS) {
+                    break;
+                }
             }
             
             resultWriter.close();
@@ -247,9 +259,21 @@ public class GeneticAlgorithm {
         }
     }
 
-    public static ArrayList<CandidateSolution> newGeneration(ArrayList<CandidateSolution> oldGeneration, TreeMap<String, String> lookup, FitnessType fit) {
-        ArrayList<CandidateSolution> parents = SelectionAlgorithms.tournamentSelection(oldGeneration, POP);
+    public static ArrayList<CandidateSolution> newGeneration(ArrayList<CandidateSolution> oldGeneration, TreeMap<String, String> lookup, FitnessType fit, SelectionType sel) {
+        ArrayList<CandidateSolution> parents;
         ArrayList<CandidateSolution> newGeneration = new ArrayList<>();
+         
+        switch (sel) {
+            case TOURNAMENT:
+                parents = SelectionAlgorithms.tournamentSelection(oldGeneration, POP);
+                break;
+            case ROULETTE:
+                parents = SelectionAlgorithms.rouletteSelection(oldGeneration);
+                break;
+            default:
+                throw new RuntimeException("Please choose from TOURNAMENT or ROULETTE selection.");
+        }
+        
         Random rand = new Random();
         double mutation_rate = (fit == FitnessType.RULE_SET_INT) ? (M_RATE / (parents.get(0).getGenome().size()/G_LENGTH)) : M_RATE;
         

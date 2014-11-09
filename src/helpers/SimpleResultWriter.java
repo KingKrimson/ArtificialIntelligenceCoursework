@@ -50,7 +50,7 @@ public class SimpleResultWriter {
         
     }
     
-    public void write(int gen, ArrayList<CandidateSolution> population) 
+    public int write(int gen, ArrayList<CandidateSolution> population) 
         throws IOException {
         int totalFitness = 0;
         int bestFitness  = 0;
@@ -74,6 +74,7 @@ public class SimpleResultWriter {
         if (printToConsole) {
             System.out.println("Gen: " + gen + " Best Fitness: " + bestFitness + " Mean Fitness: " + meanFitness + " Best Candidate: " + bestCandidate.getGenome().toString());
         }
+        return bestFitness;
     }
     
     public void close() 
