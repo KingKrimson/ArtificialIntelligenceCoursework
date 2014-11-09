@@ -12,6 +12,7 @@ import helpers.GenomeHelper;
 import individuals.CandidateSolution;
 import individuals.BinaryCandidateSolution;
 import individuals.LookupCandidateSolution;
+import individuals.MLPCandidateSolution;
 import individuals.RuleSetCandidateSolution;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -75,20 +76,33 @@ public class GeneticAlgorithm {
         TreeMap<String, String> realData  = null;
         ArrayList<CandidateSolution> initialGeneration = new ArrayList<>(POP);
         
-        for (int i = 0; i < POP; i++) {
-            CandidateSolution individual;
-            switch (genome) {
+        switch (genome) {
                 case BIT:
                     // in this case, the data can't be seperated 
                     // without breaking the training, as the lookup method is
                     // just a noddy example.
                     trainingData = new TreeMap<String, String>(fullLookup);
                     realData = new TreeMap<String, String>(fullLookup);
+                    break; 
+                case RULE_SET:
+                    TreeMap[] maps = getTrainingData(fullLookup, 0.8);
+                    trainingData = maps[0];
+                    realData = maps[1];
+                    break;
+                default:
+                    throw new RuntimeException("dataSet1 requires GenomeType to be BIT or RULE_SET. Actual type: " + genome.name());
+        }
+        
+        for (int i = 0; i < POP; i++) {
+            CandidateSolution individual;
+            switch (genome) {
+                case BIT:
                     individual = new LookupCandidateSolution(GenomeHelper.generateBitGenome(64));
-                    FitnessFunctions.calculateFitnessLookupTable(individual, fullLookup);
+                    FitnessFunctions.calculateFitnessLookupTable(individual, trainingData);
                     break;
                 case RULE_SET:
                     individual = new RuleSetCandidateSolution(GenomeHelper.generateRuleGenome(G_LENGTH * 7)); // generate G_LENGTH rules.
+                    FitnessFunctions.calculateFitnessLookupTable(individual, trainingData);
                     break;
                 default:
                     throw new RuntimeException("dataSet1 requires GenomeType to be BIT or RULE_SET. Actual type: " + genome.name());
@@ -97,20 +111,85 @@ public class GeneticAlgorithm {
             initialGeneration.add(individual);
         }
         
-        CandidateSolution bestSolution = geneticAlgorithm(initialGeneration, fullLookup, fit); // train;
+        CandidateSolution bestSolution = geneticAlgorithm(initialGeneration, trainingData, fit); // train;
         testRealData(bestSolution, realData, trainingData, fit); // test the best solution on the real data.
     }
     
     public static void dataSet2(FitnessType fit, GenomeType genome) 
     throws FileNotFoundException {
-        TreeMap<String, String> lookup = readData("data2.txt");
-        //geneticAlgorithm(initialGeneration, fit);
+        TreeMap<String, String> fullLookup = readData("data2.txt"); 
+        TreeMap<String, String> trainingData = null;
+        TreeMap<String, String> realData  = null;
+        ArrayList<CandidateSolution> initialGeneration = new ArrayList<>(POP);
+        
+        switch (genome) {
+            case RULE_SET:
+            case MLP:
+                TreeMap[] maps = getTrainingData(fullLookup, 0.8);
+                trainingData = maps[0];
+                realData = maps[1];
+                break;
+            default:
+                throw new RuntimeException("dataSet2 requires GenomeType to be RULE_SET or MLP. Actual type: " + genome.name());
+        }
+        
+        for (int i = 0; i < POP; i++) {
+            CandidateSolution individual;
+            switch (genome) {
+                case RULE_SET:
+                    individual = new RuleSetCandidateSolution(GenomeHelper.generateRuleGenome(G_LENGTH * 12)); // generate G_LENGTH rules.
+                    FitnessFunctions.calculateFitnessLookupTable(individual, trainingData);
+                    break;
+                case MLP:
+                    // what limits should the weights have? How many weights should I have?
+                    individual = new MLPCandidateSolution(GenomeHelper.generateDoubleGenome(0, 0, 0));
+                    FitnessFunctions.calculateFitnessMLP(individual, trainingData);
+                    break;
+                default:
+                    throw new RuntimeException("dataSet1 requires GenomeType to be RULE_SET or MLP. Actual type: " + genome.name());
+            }
+            
+            initialGeneration.add(individual);
+        }
+        
+        CandidateSolution bestSolution = geneticAlgorithm(initialGeneration, trainingData, fit);
+        testRealData(bestSolution, realData, trainingData, fit); // test the best solution on the real data.
     }
             
     public static void dataSet3(FitnessType fit, GenomeType genome) 
     throws FileNotFoundException {
-        TreeMap<String, String> lookup = readData("data3.txt");
-        //geneticAlgorithm(initialGeneration, fit);
+        TreeMap<String, String> fullLookup = readData("data3.txt"); 
+        TreeMap<String, String> trainingData = null;
+        TreeMap<String, String> realData  = null;
+        ArrayList<CandidateSolution> initialGeneration = new ArrayList<>(POP);
+        
+        switch (genome) {
+            case MLP:
+                TreeMap[] maps = getTrainingData(fullLookup, 0.8);
+                trainingData = maps[0];
+                realData = maps[1];
+                break;
+            default:
+                throw new RuntimeException("dataSet2 requires GenomeType to be MLP. Actual type: " + genome.name());
+        }
+        
+        for (int i = 0; i < POP; i++) {
+            CandidateSolution individual;
+            switch (genome) {
+                case MLP:
+                    // what limits should the weights have? How many weights should I have?
+                    individual = new MLPCandidateSolution(GenomeHelper.generateDoubleGenome(0, 0, 0));
+                    FitnessFunctions.calculateFitnessMLP(individual, trainingData);
+                    break;
+                default:
+                    throw new RuntimeException("dataSet1 requires GenomeType to be MLP. Actual type: " + genome.name());
+            }
+            
+            initialGeneration.add(individual);
+        }
+        
+        CandidateSolution bestSolution = geneticAlgorithm(initialGeneration, trainingData, fit);
+        testRealData(bestSolution, realData, trainingData, fit); // test the best solution on the real data.
     }
     
     public static TreeMap<String, String> readData(String name) 
@@ -206,7 +285,7 @@ public class GeneticAlgorithm {
         return newGeneration;
     }
     
-    public static TreeMap<String, String>[] getTrainingData(TreeMap fullLookup, float percentage) {
+    public static TreeMap<String, String>[] getTrainingData(TreeMap fullLookup, double percentage) {
         TreeMap<String, String> trainingData = new TreeMap(fullLookup);
         TreeMap<String, String> realData = new TreeMap();
         
@@ -229,41 +308,46 @@ public class GeneticAlgorithm {
         return maps;
     }
     
-    public static boolean testRealData(CandidateSolution bestSolution, TreeMap<String, String> realData, TreeMap<String, String> totalData, FitnessType fit) {
+    public static boolean testRealData(CandidateSolution bestSolution, TreeMap<String, String> realData, TreeMap<String, String> trainingData, FitnessType fit) {
         boolean pass = true;
         int realPassed = 0;
-        int totalPassed = 0;
+        int trainingPassed = 0;
         
         switch (fit) {
             case LOOKUP_TABLE:
                 realPassed = FitnessFunctions.calculateFitnessLookupTable(bestSolution, realData);
-                totalPassed = FitnessFunctions.calculateFitnessLookupTable(bestSolution, totalData);
+                trainingPassed = FitnessFunctions.calculateFitnessLookupTable(bestSolution, trainingData);
                 break;
             case RULE_SET_INT:
                 realPassed = FitnessFunctions.calculateFitnessRuleSet(bestSolution, realData);
-                totalPassed = FitnessFunctions.calculateFitnessRuleSet(bestSolution, totalData);
+                trainingPassed = FitnessFunctions.calculateFitnessRuleSet(bestSolution, trainingData);
                 break;
             case RULE_SET_FLOAT:
                 realPassed = FitnessFunctions.calculateFitnessRuleSet(bestSolution, realData);
-                totalPassed = FitnessFunctions.calculateFitnessRuleSet(bestSolution, totalData);
+                trainingPassed = FitnessFunctions.calculateFitnessRuleSet(bestSolution, trainingData);
                 break;
             case MLP:
                 realPassed = FitnessFunctions.calculateFitnessMLP(bestSolution, realData);
-                totalPassed = FitnessFunctions.calculateFitnessMLP(bestSolution, totalData);
+                trainingPassed = FitnessFunctions.calculateFitnessMLP(bestSolution, trainingData);
                 break;
             default:
                 System.out.println("Cannot test fitness type: " + fit.name());
                 break;
         }
         
+        int totalPassed = realPassed + trainingPassed;
         int realFailed = realData.size() - realPassed;
-        int totalFailed = totalData.size() - totalPassed;
+        int trainingFailed = trainingData.size() - trainingPassed;
+        int totalFailed = realFailed + trainingFailed;
+        
         System.out.println("Real data:\nPASS: " + realPassed + "\nFAIL: " + realFailed + "TOTAL: " + realData.size());
         System.out.println("");
-        System.out.println("Total data:\nPASS: " + totalPassed + "\nFAIL: " + totalFailed + "TOTAL: " + totalData.size());
+        System.out.println("Training data:\nPASS: " + trainingPassed + "\nFAIL: " + trainingFailed + "TOTAL: " + trainingData.size());
+        System.out.println("");
+        System.out.println("Total data:\nPASS: " + totalPassed + "\nFAIL: " + totalFailed + "TOTAL: " + realData.size() + trainingData.size());
         System.out.println("");
         
-        if (realFailed != 0) {
+        if (totalFailed != 0) {
             System.out.println("FAIL :(");
             pass = false;
         } else {
