@@ -28,9 +28,9 @@ import java.util.Scanner;
 public class GeneticAlgorithm {
 
     final static int POP = 100; // How many individuals are in the population.
-    final static int G_LENGTH = 10; // length of genome. For rules, this is number of rules, not bits.
+    final static int G_LENGTH = 20; // length of genome. For rules, this is number of rules, not bits.
     final static int NUM_GENERATIONS = 5000; //MAXIMUM number of generations. May stop beforehand.
-    final static int STOP_GENERATIONS = 30; // number of generations to stop after max fitness has been acheived.
+    final static int STOP_GENERATIONS = 100; // number of generations to stop after max fitness has been acheived.
     final static double M_RATE = (double)1/G_LENGTH; // Mutation rate. Inverse of gene length. For rules, multiplied so it mutates bit strings.
     final static boolean FULL_PRINT = false; // verbose mode.
 
@@ -53,8 +53,8 @@ public class GeneticAlgorithm {
         try {
             //prototypeSet(FitnessType.TOTAL_VALUE, GenomeType.BIT, SelectionType.TOURNAMENT);
             //dataSet1(FitnessType.LOOKUP_TABLE, GenomeType.BIT, SelectionType.TOURNAMENT);
-            dataSet1(FitnessType.RULE_SET_INT, GenomeType.RULE_SET, SelectionType.TOURNAMENT);
-            //dataSet2(FitnessType.RULE_SET_INT, GenomeType.RULE_SET, SelectionType.TOURNAMENT);
+            //dataSet1(FitnessType.RULE_SET_INT, GenomeType.RULE_SET, SelectionType.TOURNAMENT);
+            dataSet2(FitnessType.RULE_SET_INT, GenomeType.RULE_SET, SelectionType.TOURNAMENT);
             //dataSet3(FitnessType.MLP, GenomeType.MLP, SelectionType.TOURNAMENT);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -233,15 +233,19 @@ public class GeneticAlgorithm {
             int bestPossible = lookup.size();
             int bestFitness = 0;
             int count = 0;
+            boolean reachedMaxFitness = false;
             for (int i = 0; i < NUM_GENERATIONS; i++) {
                 newGeneration = newGeneration(oldGeneration, lookup, fit, sel);
                 bestFitness = resultWriter.write((i + 1), newGeneration);
                 oldGeneration = newGeneration;
                 
-                count = (bestFitness == bestPossible) ? count + 1 : 0;
-                
-                if (count == STOP_GENERATIONS) {
-                    break;
+                if (reachedMaxFitness) {
+                    count++;
+                    if (count >= STOP_GENERATIONS && bestFitness == bestPossible) {
+                        break;
+                    }
+                } else if (bestFitness == bestPossible) {
+                    reachedMaxFitness = true;
                 }
             }
             
