@@ -89,7 +89,7 @@ public class GeneticAlgorithm {
                     realData = new TreeMap<>(fullLookup);
                     break; 
                 case RULE_SET:
-                    TreeMap[] maps = getTrainingData(fullLookup, 0.8);
+                    TreeMap[] maps = getTrainingData(fullLookup, 0.85);
                     trainingData = maps[0];
                     realData = maps[1];
                     break;
@@ -129,7 +129,7 @@ public class GeneticAlgorithm {
         switch (genome) {
             case RULE_SET:
             case MLP:
-                TreeMap[] maps = getTrainingData(fullLookup, 0.8);
+                TreeMap[] maps = getTrainingData(fullLookup, 0.85);
                 trainingData = maps[0];
                 realData = maps[1];
                 break;
