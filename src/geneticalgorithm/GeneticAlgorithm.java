@@ -25,10 +25,19 @@ import java.util.Scanner;
  *
  * @author ad3-brown
  */
+
+// POTENTIAL CHANGES:
+// Tournament size change (15 vs 2)
+// Tournament rate change 0.9
+// keep top 5%
+// change rule size dynamically?
+// Stop sort in fitness (<- YES, IT'S SHITTY) and shuffle instead?
+// Sort out shitty randomisation and streamline it and stuff.
+
 public class GeneticAlgorithm {
 
     final static int POP = 100; // How many individuals are in the population.
-    final static int G_LENGTH = 20; // length of genome. For rules, this is number of rules, not bits.
+    final static int G_LENGTH = 15; // length of genome. For rules, this is number of rules, not bits.
     final static int NUM_GENERATIONS = 5000; //MAXIMUM number of generations. May stop beforehand.
     final static int STOP_GENERATIONS = 100; // number of generations to stop after max fitness has been acheived.
     final static double M_RATE = (double)1/G_LENGTH; // Mutation rate. Inverse of gene length. For rules, multiplied so it mutates bit strings.
