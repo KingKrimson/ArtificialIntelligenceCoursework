@@ -82,6 +82,7 @@ public class GeneticAlgorithm {
         geneticAlgorithm(initialGeneration, null, fit, sel);
     }
     
+    // BEST SETTINGS SO FAR: POP 100, G_LENGTH 10, STOP_GENERATIONS 100
     public static void dataSet1(FitnessType fit, GenomeType genome, SelectionType sel) 
         throws FileNotFoundException{
         TreeMap<String, String> fullLookup = readData("data1.txt"); 
@@ -128,6 +129,7 @@ public class GeneticAlgorithm {
         testRealData(bestSolution, realData, trainingData, fit); // test the best solution on the real data.
     }
     
+    // BEST SETTINGS SO FAR: POP 100, G_LENGTH 20, STOP_GENERATIONS 100.
     public static void dataSet2(FitnessType fit, GenomeType genome, SelectionType sel) 
     throws FileNotFoundException {
         TreeMap<String, String> fullLookup = readData("data2.txt"); 

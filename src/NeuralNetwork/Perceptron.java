@@ -15,10 +15,12 @@ import java.util.ArrayList;
 public abstract class Perceptron {
     private ArrayList<Connection> inputs;
     private Connection output;
+    public double threshold;
 
-    public Perceptron(ArrayList<Connection> inputs, Connection output) {
+    public Perceptron(ArrayList<Connection> inputs, Connection output, double threshold) {
         this.inputs = inputs;
         this.output = output;
+        this.threshold = threshold;
     }
 
     public ArrayList<Connection> getInputs() {
@@ -36,7 +38,14 @@ public abstract class Perceptron {
     public void setOutput(Connection output) {
         this.output = output;
     }
-    
+
+    public double getThreshold() {
+        return threshold;
+    }
+
+    public void setThreshold(double threshold) {
+        this.threshold = threshold;
+    }
     
     public abstract void perceptronFunction();
     

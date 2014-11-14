@@ -16,4 +16,8 @@ public class ArtificialNeuralNetwork {
     private ArrayList<Perceptron> inputLayer;
     private ArrayList<ArrayList<Perceptron>> hiddenLayers;
     private Perceptron outputLayer;
+    
+    private void backpropagate() {
+        // Not yet implemented
+    }
 }
