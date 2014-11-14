@@ -16,6 +16,7 @@ import individuals.MLPCandidateSolution;
 import individuals.RuleSetCandidateSolution;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.TreeMap;
 import java.util.Random;
@@ -27,20 +28,24 @@ import java.util.Scanner;
  */
 
 // POTENTIAL CHANGES:
-// Tournament size change (15 vs 2)
-// Tournament rate change 0.9
+// Tournament size change (15 vs 2) - DONE, PARAMETERISABLE
+// Crossover rate change 0.9 - DONE
 // keep top 5%
 // change rule size dynamically?
-// Stop sort in fitness (<- YES, IT'S SHITTY) and shuffle instead?
+// Stop sort in fitness (<- YES, IT'S SHITTY) and shuffle instead? - STOPPED RANDOMISATION. DO SHUFFLE?
 // Sort out shitty randomisation and streamline it and stuff.
 
 public class GeneticAlgorithm {
 
-    final static int POP = 100; // How many individuals are in the population.
-    final static int G_LENGTH = 15; // length of genome. For rules, this is number of rules, not bits.
+    final static int POP = 50; // How many individuals are in the population.
+    final static int G_LENGTH = 10; // length of genome. For rules, this is number of rules, not bits.
     final static int NUM_GENERATIONS = 5000; //MAXIMUM number of generations. May stop beforehand.
-    final static int STOP_GENERATIONS = 100; // number of generations to stop after max fitness has been acheived.
+    final static int STOP_GENERATIONS = 0; // number of generations to stop after max fitness has been acheived.
+    final static int TOURNAMENT_SIZE = 5; // size of tournament.
     final static double M_RATE = (double)1/G_LENGTH; // Mutation rate. Inverse of gene length. For rules, multiplied so it mutates bit strings.
+    final static double C_RATE = 0.9; // Crossover rate. Sometimes two parents are just added back into the pool, instead of their children.
+    final static double PERCENT_TO_KEEP = 0.05; // percentage of best parents to keep in the pool.
+    final static double TRAINING_POP = 0.8; // percent of dataset to train on.
     final static boolean FULL_PRINT = false; // verbose mode.
 
     public enum FitnessType {
@@ -99,7 +104,7 @@ public class GeneticAlgorithm {
                     realData = new TreeMap<>(fullLookup);
                     break; 
                 case RULE_SET:
-                    TreeMap[] maps = getTrainingData(fullLookup, 0.85);
+                    TreeMap[] maps = getTrainingData(fullLookup, TRAINING_POP);
                     trainingData = maps[0];
                     realData = maps[1];
                     break;
@@ -140,7 +145,7 @@ public class GeneticAlgorithm {
         switch (genome) {
             case RULE_SET:
             case MLP:
-                TreeMap[] maps = getTrainingData(fullLookup, 0.85);
+                TreeMap[] maps = getTrainingData(fullLookup, TRAINING_POP);
                 trainingData = maps[0];
                 realData = maps[1];
                 break;
@@ -252,7 +257,7 @@ public class GeneticAlgorithm {
                 
                 if (reachedMaxFitness) {
                     count++;
-                    if (count >= STOP_GENERATIONS && bestFitness == bestPossible) {
+                    if (count > STOP_GENERATIONS && bestFitness == bestPossible) {
                         break;
                     }
                 } else if (bestFitness == bestPossible) {
@@ -280,7 +285,7 @@ public class GeneticAlgorithm {
          
         switch (sel) {
             case TOURNAMENT:
-                parents = SelectionAlgorithms.tournamentSelection(oldGeneration, POP);
+                parents = SelectionAlgorithms.tournamentSelection(oldGeneration, POP, TOURNAMENT_SIZE);
                 break;
             case ROULETTE:
                 parents = SelectionAlgorithms.rouletteSelection(oldGeneration);
@@ -297,9 +302,15 @@ public class GeneticAlgorithm {
             currentParents[0] = parents.get(i);
             currentParents[1] = parents.get(i + 1);
             int point = rand.nextInt(currentParents[0].getSize());
+            double crossoverRate = rand.nextFloat();
             for (int j = 0; j <= 1; j++) {
                 int k = (j == 0) ? 1 : 0; // j == 0, k == 1 and j == 1, k == 0.
-                CandidateSolution child = currentParents[j].crossover(point, currentParents[k]);
+                CandidateSolution child;
+                if (crossoverRate < C_RATE) {
+                    child = currentParents[j].crossover(point, currentParents[k]);
+                } else {
+                    child = currentParents[j];
+                }
                 
                 child.mutation(mutation_rate);
                 switch (fit) {
@@ -382,12 +393,14 @@ public class GeneticAlgorithm {
         int trainingFailed = trainingData.size() - trainingPassed;
         int totalFailed = realFailed + trainingFailed;
         
-        int realPercentagePass = (int)Math.ceil(((double)realPassed/realData.size()) * 100);
-        int realPercentageFail = 100 - realPercentagePass;
-        int trainingPercentagePass = (int)Math.ceil(((double)trainingPassed/trainingData.size()) * 100);
-        int trainingPercentageFail = 100 - trainingPercentagePass;
-        int totalPercentagePass = (int)Math.ceil(((double)totalPassed/(trainingData.size()+realData.size())) * 100);
-        int totalPercentageFail = 100 - totalPercentagePass;
+        DecimalFormat df = new DecimalFormat("#.##");
+        
+        String realPercentagePass = df.format((double)realPassed/realData.size() * 100);
+        String realPercentageFail = df.format(100 - Double.valueOf(realPercentagePass));
+        String trainingPercentagePass = df.format((double)trainingPassed/trainingData.size() * 100);
+        String trainingPercentageFail = df.format(100 - Double.valueOf(trainingPercentagePass));
+        String totalPercentagePass = df.format((double)totalPassed/(trainingData.size()+realData.size()) * 100);
+        String totalPercentageFail = df.format(100 - Double.valueOf(totalPercentagePass));
         
         System.out.println("\nFinal Results:\n");
         System.out.println("Real data:\nPASS: " + realPassed + "\nFAIL: " + realFailed + "\nTOTAL: " + realData.size());

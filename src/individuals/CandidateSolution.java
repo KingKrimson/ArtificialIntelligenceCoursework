@@ -25,8 +25,6 @@ public abstract class CandidateSolution<T> implements Comparable<CandidateSoluti
     }
     
     public abstract CandidateSolution crossover(int point, CandidateSolution partner);
-    
-    public abstract int calculateFitness(Object T);
 
     public abstract void mutation(double probability);
 

@@ -20,7 +20,7 @@ public class RuleSetCandidateSolution extends CandidateSolution<Integer>{
     
     @Override
     public void mutation(double probability) {
-       Random randGen = new Random();
+        Random randGen = new Random();
         double rand;
         int totalMutations = 0;
         
@@ -76,15 +76,4 @@ public class RuleSetCandidateSolution extends CandidateSolution<Integer>{
         return child;
     }
     
-    @Override
-    public int calculateFitness(Object o) {
-        //int currentFitness = 0;
-        
-        //for (int gene : genome) {
-        //    currentFitness += gene;
-        //}
-        
-        //this.setFitness(currentFitness);
-        return 0;
-    }
 }

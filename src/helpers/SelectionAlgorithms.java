@@ -44,19 +44,19 @@ public class SelectionAlgorithms {
         return parents;
     }
     
-    public static ArrayList<CandidateSolution> tournamentSelection(ArrayList<CandidateSolution> oldGeneration, int pop) {
+    public static ArrayList<CandidateSolution> tournamentSelection(ArrayList<CandidateSolution> oldGeneration, int pop, int tournamentSize) {
         ArrayList<CandidateSolution> parents = new ArrayList<>(); 
         
         Random rand = new Random();
         for (int i = 0; i < (oldGeneration.size()); i++) {
-            CandidateSolution parent1 = oldGeneration.get(rand.nextInt(pop));
-            CandidateSolution parent2 = oldGeneration.get(rand.nextInt(pop));
-            
-            if (parent1.getFitness() >= parent2.getFitness()) {
-                parents.add(parent1);
-            } else {
-                parents.add(parent2);
+            ArrayList<CandidateSolution> competitors = new ArrayList(tournamentSize);
+            for (int j = 0; j < tournamentSize; j++) {
+                competitors.add(oldGeneration.get(rand.nextInt(pop)));
             }
+            
+            Collections.sort(competitors);
+            CandidateSolution winner = competitors.get(competitors.size() - 1);
+            parents.add(winner);
         }
         return parents;
     }

@@ -61,17 +61,4 @@ public class BinaryCandidateSolution extends CandidateSolution<Integer> {
         
         return child;
     }
-    
-    @Override
-    public int calculateFitness(Object o) {
-        int currentFitness = 0;
-        
-        for (int gene : genome) {
-            currentFitness += gene;
-        }
-        
-        this.setFitness(currentFitness);
-        return currentFitness;
-    }
-    
 }

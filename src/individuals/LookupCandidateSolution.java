@@ -21,27 +21,6 @@ public class LookupCandidateSolution extends CandidateSolution<Integer> {
     }
     
     @Override
-    public int calculateFitness(Object o) {
-        TreeMap<String, String> lookupTable = (TreeMap<String, String>) o;
-        int currentFitness = 0;
-        int i = 0;
-        
-        for (String key : lookupTable.keySet()) {
-            String correct = lookupTable.get(key);
-            String potential = getGenome().get(i).toString();
-            
-            if (potential.equals(correct)) {
-                currentFitness++;
-            }
-            
-            i++;
-        }
-        
-        setFitness(currentFitness);
-        return currentFitness;
-    }
-    
-    @Override
     public void mutation(double probability) {
         Random randGen = new Random();
         double rand;
