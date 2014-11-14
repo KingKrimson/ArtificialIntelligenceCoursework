@@ -20,7 +20,6 @@ public class RuleSet {
         for (int i = 0; i < RuleSet.length(); i += ruleLength) {
             ruleSet.add(new Rule(RuleSet.substring(i, i + ruleLength)));
         }
-        Collections.sort(ruleSet);
     }
     
     public String testRuleSet(String testString) {
