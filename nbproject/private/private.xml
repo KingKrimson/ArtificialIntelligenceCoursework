@@ -2,16 +2,6 @@
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-        <group>
-            <file>file:/H:/Year%203/GitHub/ArtificialIntelligenceCoursework/src/helpers/FitnessFunctions.java</file>
-            <file>file:/H:/Year%203/GitHub/ArtificialIntelligenceCoursework/src/individuals/MLPCandidateSolution.java</file>
-            <file>file:/H:/Year%203/GitHub/ArtificialIntelligenceCoursework/src/geneticalgorithm/GeneticAlgorithm.java</file>
-            <file>file:/H:/Year%203/GitHub/ArtificialIntelligenceCoursework/src/individuals/CandidateSolution.java</file>
-            <file>file:/H:/Year%203/GitHub/ArtificialIntelligenceCoursework/src/individuals/RuleSetCandidateSolution.java</file>
-            <file>file:/H:/Year%203/GitHub/ArtificialIntelligenceCoursework/src/helpers/GenomeHelper.java</file>
-            <file>file:/H:/Year%203/GitHub/ArtificialIntelligenceCoursework/src/individuals/BinaryCandidateSolution.java</file>
-            <file>file:/H:/Year%203/GitHub/ArtificialIntelligenceCoursework/src/rules/Rule.java</file>
-            <file>file:/H:/Year%203/GitHub/ArtificialIntelligenceCoursework/src/rules/RuleSet.java</file>
-        </group>
+        <group/>
     </open-files>
 </project-private>

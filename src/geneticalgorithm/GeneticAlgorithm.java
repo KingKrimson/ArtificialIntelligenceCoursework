@@ -34,17 +34,18 @@ import java.util.Scanner;
 // change rule size dynamically?
 // Stop sort in fitness (<- YES, IT'S SHITTY) and shuffle instead? - STOPPED RANDOMISATION. DO SHUFFLE?
 // Sort out shitty randomisation and streamline it and stuff.
+// Change occurance of wildcards?
 
 public class GeneticAlgorithm {
 
-    final static int POP = 50; // How many individuals are in the population.
-    final static int G_LENGTH = 10; // length of genome. For rules, this is number of rules, not bits.
-    final static int NUM_GENERATIONS = 5000; //MAXIMUM number of generations. May stop beforehand.
+    final static int POP = 100; // How many individuals are in the population.
+    final static int G_LENGTH = 5; // length of genome. For rules, this is modified a bit.
+    final static int NUM_GENERATIONS = 50000; //MAXIMUM number of generations. May stop beforehand.
     final static int STOP_GENERATIONS = 0; // number of generations to stop after max fitness has been acheived.
-    final static int TOURNAMENT_SIZE = 5; // size of tournament.
+    final static int TOURNAMENT_SIZE = 2; // size of tournament.
     final static double M_RATE = (double)1/G_LENGTH; // Mutation rate. Inverse of gene length. For rules, multiplied so it mutates bit strings.
-    final static double C_RATE = 0.9; // Crossover rate. Sometimes two parents are just added back into the pool, instead of their children.
-    final static double PERCENT_TO_KEEP = 0.05; // percentage of best parents to keep in the pool.
+    final static double C_RATE = 1.0; // Crossover rate. Sometimes two parents are just added back into the pool, instead of their children.
+    final static double PERCENT_TO_KEEP = 0.05; // percentage of best parents to keep in the pool. NOT IMPLEMENTED YET
     final static double TRAINING_POP = 0.8; // percent of dataset to train on.
     final static boolean FULL_PRINT = false; // verbose mode.
 
@@ -67,8 +68,8 @@ public class GeneticAlgorithm {
         try {
             //prototypeSet(FitnessType.TOTAL_VALUE, GenomeType.BIT, SelectionType.TOURNAMENT);
             //dataSet1(FitnessType.LOOKUP_TABLE, GenomeType.BIT, SelectionType.TOURNAMENT);
-            //dataSet1(FitnessType.RULE_SET_INT, GenomeType.RULE_SET, SelectionType.TOURNAMENT);
-            dataSet2(FitnessType.RULE_SET_INT, GenomeType.RULE_SET, SelectionType.TOURNAMENT);
+            dataSet1(FitnessType.RULE_SET_INT, GenomeType.RULE_SET, SelectionType.TOURNAMENT);
+            //dataSet2(FitnessType.RULE_SET_INT, GenomeType.RULE_SET, SelectionType.TOURNAMENT);
             //dataSet3(FitnessType.MLP, GenomeType.MLP, SelectionType.TOURNAMENT);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -251,17 +252,20 @@ public class GeneticAlgorithm {
             int count = 0;
             boolean reachedMaxFitness = false;
             for (int i = 0; i < NUM_GENERATIONS; i++) {
-                newGeneration = newGeneration(oldGeneration, lookup, fit, sel);
+                newGeneration = newGeneration(oldGeneration, PERCENT_TO_KEEP, lookup, fit, sel);
                 bestFitness = resultWriter.write((i + 1), newGeneration);
                 oldGeneration = newGeneration;
                 
                 if (reachedMaxFitness) {
-                    count++;
+                    ++count;
                     if (count > STOP_GENERATIONS && bestFitness == bestPossible) {
                         break;
                     }
                 } else if (bestFitness == bestPossible) {
                     reachedMaxFitness = true;
+                    if (STOP_GENERATIONS == 0) {
+                        break;
+                    }
                 }
             }
             
@@ -279,7 +283,7 @@ public class GeneticAlgorithm {
         }
     }
 
-    public static ArrayList<CandidateSolution> newGeneration(ArrayList<CandidateSolution> oldGeneration, TreeMap<String, String> lookup, FitnessType fit, SelectionType sel) {
+    public static ArrayList<CandidateSolution> newGeneration(ArrayList<CandidateSolution> oldGeneration, double percentToKeep, TreeMap<String, String> lookup, FitnessType fit, SelectionType sel) {
         ArrayList<CandidateSolution> parents;
         ArrayList<CandidateSolution> newGeneration = new ArrayList<>();
          

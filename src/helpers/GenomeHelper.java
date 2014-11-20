@@ -17,19 +17,10 @@ public class GenomeHelper {
     
     public static ArrayList<Integer> generateBitGenome(int size) {
         Random randGen = new Random();
-        Double rand;
         ArrayList<Integer> genome = new ArrayList<>();
         
         for(int i = 0; i < size; i++) {
-            rand = randGen.nextDouble();
-            
-            // Could probably do this better.
-            // rand = randGen.nextInt(2)?
-            if (rand < 0.5) {
-                genome.add(1);
-            } else {
-                genome.add(0);
-            }
+            genome.add(randGen.nextInt(2));
         }
         return genome;
     }
@@ -44,15 +35,11 @@ public class GenomeHelper {
             
             // don't let the answer be a wildcard.
             if ((i + 1) % ruleSize == 0) {
-                if (rand < 0.5) {
-                    genome.add(0);
-                } else {
-                    genome.add(1);  
-                }
+                genome.add(randGen.nextInt(2));
             } else {
-                if (rand < 0.333) {
+                if (rand < 0.45) {
                     genome.add(0);
-                } else if (rand < 0.666) {
+                } else if (rand < 0.90) {
                     genome.add(1);
                 } else {
                     genome.add(2);
