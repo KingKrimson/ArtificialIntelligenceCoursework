@@ -18,6 +18,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.TreeMap;
 import java.util.Random;
 import java.util.Scanner;
@@ -38,7 +39,7 @@ import java.util.Scanner;
 
 public class GeneticAlgorithm {
 
-    final static int POP = 100; // How many individuals are in the population.
+    final static int POP = 1000; // How many individuals are in the population.
     final static int G_LENGTH = 5; // length of genome. For rules, this is modified a bit.
     final static int NUM_GENERATIONS = 50000; //MAXIMUM number of generations. May stop beforehand.
     final static int STOP_GENERATIONS = 0; // number of generations to stop after max fitness has been acheived.
@@ -68,7 +69,7 @@ public class GeneticAlgorithm {
         try {
             //prototypeSet(FitnessType.TOTAL_VALUE, GenomeType.BIT, SelectionType.TOURNAMENT);
             //dataSet1(FitnessType.LOOKUP_TABLE, GenomeType.BIT, SelectionType.TOURNAMENT);
-            dataSet1(FitnessType.RULE_SET_INT, GenomeType.RULE_SET, SelectionType.TOURNAMENT);
+            dataSet1(FitnessType.RULE_SET_INT, GenomeType.RULE_SET, SelectionType.ROULETTE);
             //dataSet2(FitnessType.RULE_SET_INT, GenomeType.RULE_SET, SelectionType.TOURNAMENT);
             //dataSet3(FitnessType.MLP, GenomeType.MLP, SelectionType.TOURNAMENT);
         } catch (Exception e) {
@@ -297,11 +298,22 @@ public class GeneticAlgorithm {
             default:
                 throw new RuntimeException("Please choose from TOURNAMENT or ROULETTE selection.");
         }
+
+        // keep the best solutions, as determined by PERCENT_TO_KEEP
+        int numberToKeep = (int)(PERCENT_TO_KEEP * parents.size());
+        if (numberToKeep > 0) {
+            ArrayList<CandidateSolution> sortedGeneration = new ArrayList<>(parents);
+            Collections.sort(sortedGeneration);
+            Collections.reverse(sortedGeneration);
+            for (int i = 1; i < numberToKeep; i++) {
+                newGeneration.add(sortedGeneration.get(i));
+            }
+        }
         
         Random rand = new Random();
         double mutation_rate = (fit == FitnessType.RULE_SET_INT) ? (M_RATE / (parents.get(0).getGenome().size()/G_LENGTH)) : M_RATE;
         
-        for (int i = 0; i < parents.size(); i = i + 2) {
+        for (int i = 0; i < parents.size() - numberToKeep; i = i + 2) {
             CandidateSolution[] currentParents = new CandidateSolution[2];
             currentParents[0] = parents.get(i);
             currentParents[1] = parents.get(i + 1);
@@ -337,7 +349,7 @@ public class GeneticAlgorithm {
             }
 
         }
-
+        Collections.shuffle(newGeneration);
         return newGeneration;
     }
     

@@ -21,7 +21,7 @@ public class SelectionAlgorithms {
 
         Random rand = new Random();
         
-        Collections.sort(oldGeneration);
+        // Removed a sort from here, as I believe it was biasing the selection.
         
         ArrayList<CandidateSolution> parents = new ArrayList<>();
         for (CandidateSolution individual : oldGeneration) {
