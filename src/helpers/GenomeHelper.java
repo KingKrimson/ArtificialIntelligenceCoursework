@@ -25,7 +25,7 @@ public class GenomeHelper {
         return genome;
     }
     
-    public static ArrayList<Integer> generateRuleGenome(int popSize, int ruleSize) {
+    public static ArrayList<Integer> generateBinaryRuleGenome(int popSize, int ruleSize) {
         Random randGen = new Random();
         Double rand;
         ArrayList<Integer> genome = new ArrayList<>();
@@ -47,6 +47,29 @@ public class GenomeHelper {
             }
         }
         
+        return genome;
+    }
+    
+    public static ArrayList<Double> generateRealRuleGenome(int popSize, int ruleSize) {
+        Random randGen = new Random();
+        Double rand;
+        ArrayList<Double> genome = new ArrayList<>();
+        
+        for(int i = 0; i < popSize * ruleSize; i++) {
+            rand = randGen.nextDouble();
+            
+            // answer must be 1 or 0.
+            if ((i + 1) % ruleSize == 0) {
+                genome.add((double)randGen.nextInt(2));
+            } else {
+                // conditions can be between 0-1 or be 100 for wildcard.
+                if (rand < 0.95) {
+                    genome.add(i, randGen.nextDouble());
+                } else {
+                    genome.add(i, (double)100);
+                }
+            }
+        }
         return genome;
     }
     

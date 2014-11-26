@@ -9,10 +9,14 @@ package rules;
  *
  * @author Andrew
  */
-public class Rule implements Comparable<Rule> {
-    private String condition;
-    private String action;
+public abstract class Rule implements Comparable<Rule> {
+    protected String condition;
+    protected String action;
 
+    public Rule() {
+        
+    }
+    
     public Rule(String condition, String action) {
         this.condition = condition;
         this.action = action;
@@ -39,48 +43,8 @@ public class Rule implements Comparable<Rule> {
         this.action = action;
     }
     
-    public boolean testCondition(String testString) {
-        if (testString.length() != condition.length()) {
-            return false;
-        }
-        for (int i = 0; i < testString.length(); i++) {
-            char testChar = testString.charAt(i);
-            char conditionChar = condition.charAt(i);
-            if (testChar != conditionChar && conditionChar != '2') {
-                return false;
-            }
-        }
-        
-        return true;
-    }
+    public abstract boolean testCondition(String testString);
     
     @Override
-    public int compareTo(Rule otherRule) {
-        final int LESS = -1;
-        final int EQUAL = 0;
-        final int MORE = 1;    
-        
-        int myWildcards = 0;
-        int otherWildcards = 0;
-        
-        for (char character : this.condition.toCharArray()) {
-            if (character == '2') {
-                myWildcards++;
-            }
-        }
-        
-        for (char character : otherRule.condition.toCharArray()) {
-            if (character == '2') {
-                otherWildcards++;
-            }
-        }
-        
-        if (myWildcards < otherWildcards) {
-            return LESS;
-        } else if (myWildcards == otherWildcards) {
-            return EQUAL;
-        } else {
-            return MORE;
-        }
-    }
+    public abstract int compareTo(Rule otherRule);
 }

@@ -3,7 +3,6 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package individuals;
 
 import java.util.ArrayList;
@@ -13,96 +12,94 @@ import java.util.Random;
 
 /**
  *
- * @author ad3-brown
+ * @author Andrew
  */
-public class RuleSetCandidateSolution extends CandidateSolution<Integer>{
+public class RealRuleSetCandidateSolution extends CandidateSolution<Double> {
+
     int ruleSize;
-    
-    public RuleSetCandidateSolution(ArrayList<Integer> genome) {
+
+    public RealRuleSetCandidateSolution(ArrayList<Double> genome) {
         super(genome);
-        if (genome.size() % 7 == 0 && genome.size() % 12 == 0) {
-            ruleSize = 12;
-        } else if (genome.size() % 7 == 0) {
-            ruleSize = 7;
-        } else {
-            ruleSize = 12;
-        }
+        this.ruleSize = 13;
     }
-    
+
     @Override
     public void mutation(double probability) {
         shuffleMutation(probability);
         double geneProbability = probability / (size / ruleSize);
-        geneMutation(geneProbability);
+        geneCreepMutation(geneProbability);
     }
-    
+
     //FIX ME
     public void shuffleMutation(double probabilty) {
         Random randGen = new Random();
         double rand = randGen.nextDouble();
-        
+
         if (rand < probabilty) {
-            ArrayList<Integer> newGenome = new ArrayList<>();
-            ArrayList<List<Integer>> shuffle = new ArrayList<>();
+            ArrayList<Double> newGenome = new ArrayList<>();
+            ArrayList<List<Double>> shuffle = new ArrayList<>();
             for (int i = 0; i < genome.size(); i = (i + ruleSize)) {
-                List<Integer> subList = genome.subList(i, (i + ruleSize));
+                List<Double> subList = genome.subList(i, (i + ruleSize));
                 shuffle.add(subList);
             }
             Collections.shuffle(shuffle);
-            for (List<Integer> rule : shuffle) {
+            for (List<Double> rule : shuffle) {
                 newGenome.addAll(rule);
             }
             genome = newGenome;
         }
     }
-    
-    public void geneMutation(double probability) {
+
+    public void geneCreepMutation(double probability) {
         Random randGen = new Random();
         double rand;
         int totalMutations = 0;
-        
+
         for (int i = 0; i < this.getSize(); i++) {
             rand = randGen.nextDouble();
             if (rand <= probability) {
                 //System.out.println("MUTATING POINT " + i);
                 totalMutations++;
-                int value = genome.get(i);
-                rand = randGen.nextDouble();
-                if (value == 0) {
-                    if (rand <= 0.90) {
-                        genome.set(i, 1);
+                double value = genome.get(i);
+                if ((i + 1) % ruleSize == 0) {
+                    if ((int) value == 1) {
+                        genome.set(i, (double) 1);
                     } else {
-                        genome.set(i, 2);
-                    }
-                } else if (value == 1) {
-                    if (rand <= 0.90) {
-                        genome.set(i, 0);
-                    } else {
-                        genome.set(i, 2);
+                        genome.set(i, (double) 0);
                     }
                 } else {
-                    if (rand <= 0.5) {
-                        genome.set(i, 0);
+                    double wildCardChance = randGen.nextDouble();
+                    if (wildCardChance < 0.95) {
+                        // normal distribution of +- 0.25
+                        double creep = (randGen.nextGaussian() * 0.25);
+                        genome.set(i, value + creep);
                     } else {
-                        genome.set(i, 1);
+                        genome.set(i, (double)100);
                     }
-                }    
+                }
             }
         }
     }
-    
-    public void ruleSizeMutation() {
-        // add 50%
-        // add rule at random point in between rules
-        // size += ruleSize
-        // remove 50%
-        // remove random rule
-        // size +- ruleSize
+
+    public void geneRandomMutation(double probability) {
+        Random randGen = new Random();
+        double rand;
+        int totalMutations = 0;
+
+        for (int i = 0; i < this.getSize(); i++) {
+            rand = randGen.nextDouble();
+            if (rand <= probability) {
+                //System.out.println("MUTATING POINT " + i);
+                totalMutations++;
+                // normal distribution of +- 0.25
+                genome.set(i, randGen.nextDouble());
+            }
+        }
     }
-    
+
     @Override
     public CandidateSolution crossover(int point, CandidateSolution partner) {
-                
+
         // should throw exception here?
         if (this.size != partner.size) {
             return partner;
@@ -111,15 +108,23 @@ public class RuleSetCandidateSolution extends CandidateSolution<Integer>{
         //System.out.println("\nPARENT 1: " + this.getGenome().toString());
         //System.out.println("PARENT 2:" + partner.getGenome().toString());
         //System.out.println("CROSSOVER POINT: " + point);
-        ArrayList<Integer> childGenome = new ArrayList<>(this.size);
+        ArrayList<Double> childGenome = new ArrayList<>(this.size);
         childGenome.addAll(this.getGenome().subList(0, point));
         childGenome.addAll(partner.getGenome().subList(point, genome.size()));
-        
-        CandidateSolution child = new RuleSetCandidateSolution(childGenome);
+
+        CandidateSolution child = new RealRuleSetCandidateSolution(childGenome);
         //System.out.println("CHILD: " + child.getGenome().toString()\n);
         //System.out.println("");
-        
+
         return child;
     }
-    
+
+    @Override
+    public String toString() {
+        String rules = "";
+        for (Double d : genome) {
+            rules += d.toString() + " ";
+        }
+        return rules.trim();
+    }
 }

@@ -13,21 +13,34 @@ import java.util.ArrayList;
  * @author ad3-brown
  */
 public class ArtificialNeuralNetwork {
-    private ArrayList<Perceptron> inputLayer;
-    private ArrayList<Perceptron> hiddenLayer;
+    private ArrayList<Perceptron> inputLayer = new ArrayList<>();
+    private ArrayList<Perceptron> hiddenLayer = new ArrayList<>();
     private Perceptron outputLayer;
+    private Perceptron bias;
     
     // todo: add bias?
     // todo: change representation so the weights for each neuron aren't sequential?
-    // for example 1 = first weight on neuron, 5 = second weight...
+    // for example 1 = first weight on first neuron, 5 = second weight...
     public ArtificialNeuralNetwork(ArrayList<Double> weightList, int inputNumber, int hiddenNumber) {
         int expectedSize = weightList.size();
-        int actualSize = (inputNumber * hiddenNumber) + hiddenNumber;
+        // +1 to account for the bias weights
+        int actualSize = ((inputNumber + 1) * hiddenNumber) + hiddenNumber;
         if (expectedSize != actualSize) {
             throw new RuntimeException("Weight list size does not match amount of weights. List: " + expectedSize + " Actual: " + actualSize);
         }
         
         int weightIndex = -1;
+        // generate bias
+        ArrayList<Connection> biasInput = new ArrayList<>();
+        biasInput.add(new Connection(1, 1));
+        ArrayList<Connection> biasWeights = new ArrayList<>();
+        for (int i = 0; i < hiddenNumber; i++) {
+            // bias always outputs 1, to stop the decision plane from going 
+            // through the origin.
+            biasWeights.add(new Connection(1, weightList.get(++weightIndex)));
+        }
+        bias = new Perceptron(biasInput, biasWeights);
+        
         // generate input layer
         for (int i = 0; i < inputNumber; i++) {
             // generate input connections
@@ -47,8 +60,11 @@ public class ArtificialNeuralNetwork {
         
         // generate hidden layer
         for (int i = 0; i < hiddenNumber; i++) {
-            // generate input connections (output from input layer)
+            // generate input connections (output from input layer and bias)
             ArrayList<Connection> inputValues = new ArrayList<>();
+            
+            Connection biasCon = bias.getOutputs().get(i);
+            inputValues.add(biasCon);
             for (int j = 0; j < inputNumber; j++) {
                 Connection con = inputLayer.get(j).getOutputs().get(i);
                 inputValues.add(con);
@@ -86,7 +102,7 @@ public class ArtificialNeuralNetwork {
             p.setInputValues(inputs.get(i));
         }
         
-        // get sigmoid for each hidden neuron
+        // get sigmoid for each hidden neuron. Bias is part of the input, so will be updated as well.
         for (Perceptron p : hiddenLayer) {
             p.sigmoidFunction();
         }

@@ -1,4 +1,4 @@
-1048 rows x 11 variables (+ class, space separated, CR EOL)
+2048 rows x 11 variables (+ class, space separated, CR EOL)
 00000000000 0
 10000000000 0
 10000100000 0

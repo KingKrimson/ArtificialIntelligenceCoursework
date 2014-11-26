@@ -12,14 +12,11 @@ import java.util.Collections;
  *
  * @author Andrew
  */
-public class RuleSet {
-    private ArrayList<Rule> ruleSet;
+public abstract class RuleSet {
+    protected ArrayList<Rule> ruleSet;
     
-    public RuleSet(String RuleSet, int ruleLength) {
+    public RuleSet() {
         ruleSet = new ArrayList<>();
-        for (int i = 0; i < RuleSet.length(); i += ruleLength) {
-            ruleSet.add(new Rule(RuleSet.substring(i, i + ruleLength)));
-        }
     }
     
     public String testRuleSet(String testString) {

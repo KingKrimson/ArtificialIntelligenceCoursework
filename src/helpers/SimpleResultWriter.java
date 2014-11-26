@@ -13,6 +13,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 
 /**
@@ -57,13 +58,14 @@ public class SimpleResultWriter {
         int meanFitness  = 0;
         CandidateSolution bestCandidate = null;
                 
+        ArrayList<CandidateSolution> sortedPop = new ArrayList<>(population);
+        Collections.sort(sortedPop);
+        Collections.reverse(sortedPop);
+        bestFitness = sortedPop.get(0).getFitness();
+        bestCandidate = sortedPop.get(0);
         for (CandidateSolution candidateSolution : population) {
             int fitness  = candidateSolution.getFitness();            
             totalFitness += fitness;
-            if (fitness > bestFitness) {
-                bestFitness = fitness;
-                bestCandidate = candidateSolution;
-            }
         }
         
         meanFitness = totalFitness / population.size();

@@ -17,8 +17,8 @@ public class Perceptron {
     private ArrayList<Connection> outputs;
 
     public Perceptron(ArrayList<Connection> inputs, ArrayList<Connection> outputs) {
-        this.inputs = inputs;
-        this.outputs = outputs;
+        this.inputs = new ArrayList<>(inputs);
+        this.outputs = new ArrayList<>(outputs);
     }
 
     public ArrayList<Connection> getInputs() {
@@ -46,8 +46,10 @@ public class Perceptron {
 
         // Actual sigmoid function.
         double sigmoid = (1 / (1 + Math.pow(Math.E, (-1 * totalSum))));
-        
-        sigmoid = sigmoid < 0.5 ? 0 : sigmoid;
+       
+        /*
+        *sigmoid = sigmoid < 0.5 ? 0 : sigmoid; // Supress sigmoid if not firing?
+        */
         
         for (Connection con : outputs) {
             con.setValue(sigmoid);
