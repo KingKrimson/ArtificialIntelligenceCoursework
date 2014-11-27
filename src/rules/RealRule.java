@@ -42,6 +42,12 @@ public class RealRule extends Rule {
                     return false;
                 }
             } else if (!((int)firstCondition >= 100 && (int)secondCondition >= 100)) {
+                // make sure that the two conditions make a valid range.
+                if (firstCondition > secondCondition) {
+                    double temp = firstCondition;
+                    firstCondition = secondCondition;
+                    secondCondition = temp;
+                }
                 if (test < firstCondition || test > secondCondition) {
                     return false;
                 }
