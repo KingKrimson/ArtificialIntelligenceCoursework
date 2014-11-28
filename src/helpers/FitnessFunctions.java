@@ -7,6 +7,8 @@ package helpers;
 
 import individuals.CandidateSolution;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.TreeMap;
 import neuralnetwork.ArtificialNeuralNetwork;
 import rules.BinaryRuleSet;
@@ -78,15 +80,22 @@ public class FitnessFunctions {
 
     public static int calculateFitnessRealRuleSet(CandidateSolution individual, TreeMap<String, String> lookup) {
         int fitness = 0;
-        RuleSet ruleSet = new RealRuleSet(individual.toString(), 13);
+        RuleSet ruleSet = new RealRuleSet(individual.getGenome(), 13);
         Object[] keyArray = lookup.keySet().toArray();
 
         for (Object k : keyArray) {
             String key = (String) k;
-            String predictedAnswer = ruleSet.testRuleSet(key);
+            List<String> stringInputList = new ArrayList<>(Arrays.asList(key.split(" ")));
+            List<Double> doubleInputList = new ArrayList<>();
+            
+            for(String s : stringInputList) {
+                doubleInputList.add(Double.parseDouble(s));
+            }
+            
+            String predictedAnswer = ruleSet.testRuleSet(doubleInputList);
             String actualAnswer = lookup.get(key);
 
-            if (predictedAnswer != null && predictedAnswer.equals(actualAnswer)) {
+            if (predictedAnswer != null && Double.parseDouble(predictedAnswer) == Integer.parseInt(actualAnswer)) {
                 fitness++;
             }
         }

@@ -6,23 +6,20 @@
 package rules;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
  * @author Andrew
  */
 public class RealRuleSet extends RuleSet {
-    public RealRuleSet(String RuleSet, int ruleLength) {
+    public RealRuleSet(List<Double> ruleSetDoubles, int ruleLength) {
         super();
         ruleSet = new ArrayList<>();
-        String[] rules = RuleSet.split(" +");
                 
-        for (int i = 0; i < rules.length; i += ruleLength) {
-            String rule = "";
-            for (int j = i; j < ruleLength+i; j++) {
-                rule += rules[j] + " ";
-            }
-            ruleSet.add(new RealRule(rule.trim()));
+        for (int i = 0; i < ruleSetDoubles.size(); i += ruleLength) {
+            List<Double> rule = ruleSetDoubles.subList(i, i+ruleLength);
+            ruleSet.add(new RealRule(rule));
         }
     }
 }

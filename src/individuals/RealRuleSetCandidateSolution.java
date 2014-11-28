@@ -30,7 +30,6 @@ public class RealRuleSetCandidateSolution extends CandidateSolution<Double> {
         geneCreepMutation(geneProbability);
     }
 
-    //FIX ME
     public void shuffleMutation(double probabilty) {
         Random randGen = new Random();
         double rand = randGen.nextDouble();
@@ -63,19 +62,20 @@ public class RealRuleSetCandidateSolution extends CandidateSolution<Double> {
                 double value = genome.get(i);
                 if ((i + 1) % ruleSize == 0) {
                     if ((int) value == 1) {
-                        genome.set(i, (double) 1);
+                        genome.set(i, 1.0);
                     } else {
-                        genome.set(i, (double) 0);
+                        genome.set(i, 0.0);
                     }
                 } else {
-                    double wildCardChance = randGen.nextDouble();
-                    if (wildCardChance < 0.95) {
-                        // normal distribution of +- 0.25
-                        double creep = (randGen.nextGaussian() * 0.25);
-                        genome.set(i, value + creep);
-                    } else {
-                        genome.set(i, (double)100);
+                    // normal distribution of +- 0.25
+                    double creep = (randGen.nextGaussian() * 0.25);
+                    double newValue = value + creep;
+                    if (newValue > 1) {
+                        newValue = 1.0;
+                    } else if (newValue < 0) {
+                        newValue = 0.0;
                     }
+                    genome.set(i, newValue);
                 }
             }
         }

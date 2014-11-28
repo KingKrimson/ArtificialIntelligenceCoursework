@@ -5,6 +5,8 @@
  */
 package rules;
 
+import java.util.List;
+
 /**
  *
  * @author Andrew
@@ -33,6 +35,11 @@ public class BinaryRule extends Rule {
         }
 
         return true;
+    }
+    
+    @Override
+    public boolean testCondition(List<Double> testList) {
+        throw new RuntimeException("testcondition(List<Double>) not implemented for BinaryRule.");
     }
 
     @Override

@@ -241,33 +241,7 @@ public class GeneticAlgorithm {
         return testRealData(bestSolution, realData, trainingData, fit); // test the best solution on the real data.
     }
     
-    public static TreeMap<String, String> readData(String name) 
-        throws FileNotFoundException {
-        File file = new File("data/" + name).getAbsoluteFile();
-        Scanner scan = new Scanner(file);
-        
-        TreeMap<String, String> lookup = new TreeMap<>();
-        
-        if (scan.hasNextLine()) {
-            scan.nextLine(); // get rid of header, I don't need it.
-        }
-        
-        while (scan.hasNextLine()) {
-            String line = scan.nextLine();
-            String[] words = line.split(" "); // split on space.
-            String key = "";
-            for (int i = 0; i < words.length; i++) {
-                if (i == (words.length - 1)) {
-                    key = key.trim();
-                    lookup.put(key, words[i]);
-                } else {
-                    key += words[i] + " ";
-                }
-            }
-        }
-        
-        return lookup;
-    }
+    
 
     public static CandidateSolution geneticAlgorithm(ArrayList<CandidateSolution> oldGeneration, TreeMap<String, String> lookup, FitnessType fit, SelectionType sel) {
         try {
@@ -407,6 +381,33 @@ public class GeneticAlgorithm {
 
         Collections.shuffle(newGeneration);
         return newGeneration;
+    }
+    
+    public static TreeMap<String, String> readData(String name) 
+        throws FileNotFoundException {
+        File file = new File("data/" + name).getAbsoluteFile();
+        Scanner scan = new Scanner(file);
+        
+        TreeMap<String, String> lookup = new TreeMap<>();
+        
+        if (scan.hasNextLine()) {
+            scan.nextLine(); // get rid of header, I don't need it.
+        }
+        
+        while (scan.hasNextLine()) {
+            String line = scan.nextLine();
+            String[] words = line.split(" "); // split on space.
+            String key = "";
+            for (int i = 0; i < words.length; i++) {
+                if (i == (words.length - 1)) {
+                    key = key.trim();
+                    lookup.put(key, words[i]);
+                } else {
+                    key += words[i] + " ";
+                }
+            }
+        }
+        return lookup;
     }
     
     public static TreeMap<String, String>[] getTrainingData(TreeMap fullLookup, double percentage) {

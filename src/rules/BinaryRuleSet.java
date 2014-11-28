@@ -13,11 +13,11 @@ import java.util.ArrayList;
  */
 public class BinaryRuleSet extends RuleSet {
 
-    public BinaryRuleSet(String RuleSet, int ruleLength) {
+    public BinaryRuleSet(String ruleSetString, int ruleLength) {
         super();
         ruleSet = new ArrayList<>();
-        for (int i = 0; i < RuleSet.length(); i += ruleLength) {
-            ruleSet.add(new BinaryRule(RuleSet.substring(i, i + ruleLength)));
+        for (int i = 0; i < ruleSetString.length(); i += ruleLength) {
+            ruleSet.add(new BinaryRule(ruleSetString.substring(i, i + ruleLength)));
         }
     }
 }

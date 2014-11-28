@@ -5,6 +5,8 @@
  */
 package rules;
 
+import java.util.List;
+
 /**
  *
  * @author Andrew
@@ -44,6 +46,8 @@ public abstract class Rule implements Comparable<Rule> {
     }
     
     public abstract boolean testCondition(String testString);
+    
+    public abstract boolean testCondition(List<Double> testList);
     
     @Override
     public abstract int compareTo(Rule otherRule);

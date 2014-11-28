@@ -5,56 +5,51 @@
  */
 package rules;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 /**
  *
  * @author Andrew
  */
 public class RealRule extends Rule {
-
-    public RealRule(String condition, String action) {
-        super(condition, action);
-    }
+    private List<Double> dConditions;
+    private double dAction;
     
-    public RealRule(String completeRule) {
-        this.condition = completeRule.substring(0, completeRule.length()-1).trim();
-        this.action = completeRule.trim().substring(completeRule.length()-1, completeRule.length());
+    public RealRule(List<Double> completeRule) {
+        super();
+        dAction = completeRule.get(completeRule.size()-1);
+        dConditions = completeRule.subList(0, completeRule.size()-1);
+        
+        action = String.valueOf(dAction);
+        condition = dConditions.toString();
     }
     
     @Override
     public boolean testCondition(String testString) {
-        String [] conditions = condition.split(" +");
-        String [] tests = testString.split(" +");
-        
-        if (tests.length != conditions.length * 2) {
+        throw new RuntimeException("testCondition(String) not implemented for RealRule.");
+    }
+    
+    @Override
+    public boolean testCondition(List<Double> testList) {
+      
+        if (testList.size() * 2 != dConditions.size()) {
             return false;
         }
-        for (int i = 0; i < tests.length; i++) {
-            double test = Double.parseDouble(tests[i]);
-            double firstCondition = Double.parseDouble(conditions[i*2]);
-            double secondCondition = Double.parseDouble(conditions[(i*2)+1]);
-            
-            if ((int)firstCondition >= 100) {
-                if (test > secondCondition) {
-                    return false;
-                }
-            } else if ((int)secondCondition >= 100) {
-                if (test < firstCondition) {
-                    return false;
-                }
-            } else if (!((int)firstCondition >= 100 && (int)secondCondition >= 100)) {
-                // make sure that the two conditions make a valid range.
-                if (firstCondition > secondCondition) {
-                    double temp = firstCondition;
-                    firstCondition = secondCondition;
-                    secondCondition = temp;
-                }
-                if (test < firstCondition || test > secondCondition) {
-                    return false;
-                }
+        
+        for (int i = 0; i < testList.size(); i++) {
+            double test = testList.get(i);
+            List<Double> localConditions = dConditions.subList((i*2), (i*2)+2);
+            Collections.sort(localConditions);
+            if (test < localConditions.get(0) || test > localConditions.get(1)) {
+                return false;
             }
         }
         return true;
     }
+    
+    
     
     @Override
     public int compareTo(Rule otherRule) {

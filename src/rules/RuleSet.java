@@ -6,7 +6,7 @@
 package rules;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.List;
 
 /**
  *
@@ -24,6 +24,19 @@ public abstract class RuleSet {
         
         for (Rule rule : ruleSet) {
             if (rule.testCondition(testString)) {
+                result = rule.getAction();
+                break;
+            }
+        }
+        
+        return result;
+    }
+    
+    public String testRuleSet(List<Double> testList) {
+        String result = null; // If none of the rules match, return null.
+        
+        for (Rule rule : ruleSet) {
+            if (rule.testCondition(testList)) {
                 result = rule.getAction();
                 break;
             }
