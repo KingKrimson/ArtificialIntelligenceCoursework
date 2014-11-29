@@ -7,47 +7,101 @@
 package individuals;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
- *
+ * abstract CandidateSolution class. Provides methods that a CandidateSolution
+ * must implement. Also has a compareTo function, that allows a list of CandidateSolutions
+ * to be sorted.
+ * 
  * @author ad3-brown
  * @param <T>
  */
 public abstract class CandidateSolution<T> implements Comparable<CandidateSolution> {
+
+    /**
+     * the size of the solution.
+     */
     public int size;
-    public ArrayList<T> genome;
+
+    /**
+     * the genome of the solution
+     */
+    public List<T> genome;
+
+    /**
+     * fitness of the solution
+     */
     public int fitness;
  
+    /**
+     *
+     * @param genome
+     */
     public CandidateSolution(ArrayList<T> genome) {
         this.size = genome.size();
         this.genome = genome;
         this.fitness = 0;
     }
     
+    /**
+     * crossover signature. Takes a point to crossover on, and a CandidateSolution.
+     * @param point
+     * @param partner
+     * @return
+     */
     public abstract CandidateSolution crossover(int point, CandidateSolution partner);
 
+    /**
+     * Mutation signature. Takes a probability.
+     * @param probability
+     */
     public abstract void mutation(double probability);
 
+    /**
+     *
+     * @return
+     */
     public int getSize() {
         return size;
     }
 
+    /**
+     *
+     * @param size
+     */
     public void setSize(int size) {
         this.size = size;
     }
 
-    public ArrayList<T> getGenome() {
+    /**
+     *
+     * @return
+     */
+    public List<T> getGenome() {
         return genome;
     }
 
+    /**
+     *
+     * @param genome
+     */
     public void setGenome(ArrayList<T> genome) {
         this.genome = genome;
     }
 
+    /**
+     *
+     * @return
+     */
     public int getFitness() {
         return fitness;
     }
 
+    /**
+     *
+     * @param fitness
+     */
     public void setFitness(int fitness) {
         this.fitness = fitness;
     }

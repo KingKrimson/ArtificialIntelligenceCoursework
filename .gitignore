@@ -23,6 +23,13 @@ results*.csv
 *.jar
 *.class
 
+# Java docs.
+
+*.html
+*.js
+*.css
+package-list
+
 
 # =========================
 # Operating System Files
@@ -36,8 +43,7 @@ results*.csv
 .LSOverride
 
 # Icon must end with two \r
-Icon
-
+Icon
 # Thumbnails
 ._*
 

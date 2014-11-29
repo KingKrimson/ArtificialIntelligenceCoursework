@@ -10,17 +10,30 @@ import java.util.ArrayList;
 import java.util.Random;
 
 /**
- *
+ * Candidate solution for the Multi Layer Perceptron representation of dataset 3.
+ * The genome is a list of doubles, which become weights in the Perceptron. 
+ * 
  * @author ad3-brown
  */
 public class MLPCandidateSolution extends CandidateSolution<Double> {
     
+    /**
+     * Create a MLPCandidateSolution with the given genome.
+     * 
+     * @param genome
+     */
     public MLPCandidateSolution(ArrayList<Double> genome) {
         super(genome);
     }
     
-    // creep mutation
-    @Override
+    /**
+     * For each gene, add or subtract a value from the gene if the probability 
+     * is met. The value to subtract is in the normally distributed range 
+     * between -0.25 and 0.25. This is known as creep mutation.
+     * 
+     * @param probability
+     */
+        @Override
     public void mutation(double probability) {
         Random randGen = new Random();
         double rand;
@@ -37,11 +50,31 @@ public class MLPCandidateSolution extends CandidateSolution<Double> {
         }
     }
     
+    /**
+     * perform varying crossover actions. Right now, only does standard point
+     * crossover.
+     * 
+     * @param point
+     * @param partner
+     * @return
+     */
     @Override
     public CandidateSolution crossover(int point, CandidateSolution partner) {
         return pointCrossover(point, partner);
     }
     
+    /**
+     * Given another CandidateSolution and a point to crossover, perform the 
+     * crossover. This CandidateSolution becomes the first section of the new
+     * solution, and the parameter CandidateSolution becomes the second section.
+     * 
+     * To get two children from two parents, call this function on both of them,
+     * with the other parent as a parameter.
+     *
+     * @param point
+     * @param partner
+     * @return
+     */
     public CandidateSolution pointCrossover(int point, CandidateSolution partner) {
         // should throw exception here?
         if (this.size != partner.size) {
@@ -59,8 +92,15 @@ public class MLPCandidateSolution extends CandidateSolution<Double> {
         return child;
     }
     
-    // implement this.
-    public CandidateSolution mergeCrossover(int point, CandidateSolution partner) {
+    // Still need to implement this.
+
+    /**
+     *
+     * @param point
+     * @param partner
+     * @return
+     */
+        public CandidateSolution mergeCrossover(int point, CandidateSolution partner) {
         ArrayList<Double> childGenome = new ArrayList<>(this.size);
         
         // point to start merge

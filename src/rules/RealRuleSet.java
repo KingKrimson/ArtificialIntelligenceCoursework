@@ -9,10 +9,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- *
+ * A ruleSet containing real valued numbers.
+ * 
  * @author Andrew
  */
 public class RealRuleSet extends RuleSet {
+
+    /**
+     * Construct a ruleSet consisting of real rules out of the given list of 
+     * doubles. Each rule is ruleLength long.
+     * 
+     * @param ruleSetDoubles
+     * @param ruleLength
+     */
     public RealRuleSet(List<Double> ruleSetDoubles, int ruleLength) {
         super();
         ruleSet = new ArrayList<>();

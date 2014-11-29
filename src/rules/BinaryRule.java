@@ -8,19 +8,37 @@ package rules;
 import java.util.List;
 
 /**
- *
+ * Binary rule. each rule has a set of conditions, which can contain 0, 1, or 2
+ * (a wildcard that matches either 0 or 1). If a given input value matches the
+ * conditions, then the action (1 or 0) can be assumed to be valid.
  * @author Andrew
  */
 public class BinaryRule extends Rule {
 
+    /**
+     *
+     * @param condition
+     * @param action
+     */
     public BinaryRule(String condition, String action) {
         super(condition, action);
     }
 
+    /**
+     *
+     * @param completeRule
+     */
     public BinaryRule(String completeRule) {
         super(completeRule);
     }
 
+    /**
+     * test the given string against the inputs given in the test String.
+     * if the inputs match, return the true.
+     * Return 
+     * @param testString
+     * @return
+     */
     @Override
     public boolean testCondition(String testString) {
         if (testString.length() != condition.length()) {
@@ -37,11 +55,26 @@ public class BinaryRule extends Rule {
         return true;
     }
     
+    /**
+     * Lazy way of stopping the user from calling the wrong test function.
+     * @param testList
+     * @return
+     */
     @Override
     public boolean testCondition(List<Double> testList) {
         throw new RuntimeException("testcondition(List<Double>) not implemented for BinaryRule.");
     }
-
+    
+    /**
+     * return a human readable version of the rule
+     * @return
+     */
+    @Override
+    public String ruleRepresentation() {
+        return condition + " = " + action;
+    }
+    
+    // Sort rules based on how many wildcards they have.
     @Override
     public int compareTo(Rule otherRule) {
         final int LESS = -1;

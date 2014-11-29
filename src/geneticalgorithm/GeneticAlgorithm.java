@@ -5,6 +5,7 @@
  */
 package geneticalgorithm;
 
+import helpers.Averager;
 import helpers.FitnessFunctions;
 import helpers.SelectionAlgorithms;
 import helpers.SimpleResultWriter;
@@ -17,56 +18,78 @@ import individuals.BinaryRuleSetCandidateSolution;
 import individuals.RealRuleSetCandidateSolution;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.text.DecimalFormat;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.TreeMap;
 import java.util.Random;
 import java.util.Scanner;
+import rules.BinaryRuleSet;
+import rules.RealRuleSet;
+import rules.RuleSet;
 
 /**
  *
  * @author ad3-brown
  */
-
 // POTENTIAL CHANGES:
 // Tournament size change (15 vs 2) - DONE, PARAMETERISABLE
-// Crossover rate change 0.9 - DONE
-// keep top 5%
-// change rule size dynamically?
-// Stop sort in fitness (<- YES, IT'S SHITTY) and shuffle instead? - STOPPED RANDOMISATION. DO SHUFFLE?
-// Sort out shitty randomisation and streamline it and stuff.
-// Change occurance of wildcards?
-
+// Crossover rate change ability - DONE
+// keep top 5% - DONE
+// change rule size dynamically? - Sort of done.
+// Stop sort in fitness and shuffle instead? - STOPPED RANDOMISATION, NOW DO SHUFFLE INSTEAD.
+// Sort out randomisation and streamline it and stuff. - Not done, but it seems to work fine...
+// Change occurance of wildcards? - Done
 public class GeneticAlgorithm {
 
-    static int POP = 300; // How many individuals are in the population.
-    static int G_LENGTH = 10; // length of genome. For rules, this is modified a bit. Ignored for MLP, different way of calculating length.
-    static int NUM_GENERATIONS = 10000; //MAXIMUM number of generations. May stop beforehand.
-    static int STOP_GENERATIONS = 0; // number of generations to stop after max fitness has been acheived.
-    static int TOURNAMENT_SIZE = 20; // size of tournament.
-    static double M_RATE = (double)1/G_LENGTH; // Mutation rate. Inverse of gene length. For rules, multiplied so it mutates bit strings.
-    static double ANN_M_RATE = 0.2; // Mutation rate for neural network.
-    static double C_RATE = 1.0; // Crossover rate. Sometimes two parents are just added back into the pool, instead of their children.
-    static double PERCENT_TO_KEEP = 0.05; // percentage of best parents to keep in the pool. NOT IMPLEMENTED YET
-    static double TRAINING_POP = 0.8; // percent of dataset to train on.
-    static boolean FULL_PRINT = false; // verbose mode.
-    
+    public static int POP = 100; // How many individuals are in the population.
+    public static int G_LENGTH = 5; // length of genome. For rules, this is modified a bit. Ignored for MLP, different way of calculating length.
+    public static int NUM_GENERATIONS = 10000; //MAXIMUM number of generations. May stop beforehand.
+    public static int STOP_GENERATIONS = 0; // number of generations to stop after max fitness has been acheived. 0 stops straight away.
+    public static int TOURNAMENT_SIZE = 10; // number of candidates in tournament.
+    public static double M_RATE = (double) 1 / G_LENGTH; // Mutation rate. Typically inverse of gene length. For rules, manipulatied in candidate for different mutations.
+    public static double ANN_M_RATE = 0.2; // Mutation rate for neural network.
+    public static double C_RATE = 1.0; // Crossover rate. Sometimes two parents are just added back into the pool, instead of their children.
+    public static double PERCENT_TO_KEEP = 0.05; // percentage of best parents to keep in the pool. NOT IMPLEMENTED YET
+    public static double TRAINING_POP = 0.8; // percent of dataset to train on.
+    public static boolean FULL_PRINT = false; // verbose mode.
     static int NUMBER_OF_HIDDEN_NODES = 5; // number of nodes in hidden layer of MLP.
 
+    /**
+     * The specific type of fitness function to use.
+     */
     public enum FitnessType {
-        TOTAL_VALUE, LOOKUP_TABLE, RULE_SET_INT, RULE_SET_REAL, MLP
-    }
 
-    public enum GenomeType {
-        BIT, RULE_SET, MLP
-    }
-    
-    public enum SelectionType {
-        TOURNAMENT, ROULETTE
+        TOTAL_VALUE,
+        LOOKUP_TABLE,
+        RULE_SET_INT,
+        RULE_SET_REAL,
+        MLP
     }
 
     /**
+     * The generic genome type being used
+     */
+    public enum GenomeType {
+
+        BIT,
+        RULE_SET,
+        MLP
+    }
+
+    /**
+     * The selection algorithm to use when selecting a new generation
+     */
+    public enum SelectionType {
+
+        TOURNAMENT,
+        ROULETTE
+    }
+
+    /**
+     * The entry point. Used to run the various data sets.
+     *
      * @param args the command line arguments
      */
     public static void main(String[] args) {
@@ -76,64 +99,320 @@ public class GeneticAlgorithm {
             //dataSet1(FitnessType.RULE_SET_INT, GenomeType.RULE_SET, SelectionType.TOURNAMENT);
             //dataSet2(FitnessType.RULE_SET_INT, GenomeType.RULE_SET, SelectionType.TOURNAMENT);
             //dataSet3(FitnessType.MLP, GenomeType.MLP, SelectionType.TOURNAMENT);
-            
-//            int noPassed = 0;
-//            int noFailed = 0;        
-//            for (int i = 0; i < 20; i++) {
-//                boolean passed = dataSet2(FitnessType.RULE_SET_INT, GenomeType.RULE_SET, SelectionType.TOURNAMENT);
-//                if (passed) {
-//                    noPassed++;
-//                } else {
-//                    noFailed++;
-//                }
-//            }
-//            System.out.println("NUMBER PASSED: " + noPassed + " NUMBER FAILED " + noFailed);
-            
-            dataSet3(FitnessType.RULE_SET_REAL, GenomeType.RULE_SET, SelectionType.TOURNAMENT);
-         
-            
+
+            runDataSet1Fiddles();
+            //runDataSet2Fiddles();
+            //runDataSet3Fiddles();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
-    
-    public static void prototypeSet(FitnessType fit, GenomeType genome, SelectionType sel) {
-        ArrayList<CandidateSolution> initialGeneration = new ArrayList<>(POP);
 
+    /**
+     * repeatedly run dataset1 with different parameters, in order to generate
+     * results.
+     *
+     * @throws FileNotFoundException
+     * @throws IOException
+     */
+    public static void runDataSet1Fiddles()
+            throws FileNotFoundException, IOException {
+        int numRuns = 0;
+        POP = 100;
+        G_LENGTH = 5;
+        TOURNAMENT_SIZE = 5;
+        M_RATE = (double) 1 / G_LENGTH;
+        
+        Averager averageWriter = new Averager(52, 12);
+
+        for (int i = 0; i < 20; i++) {
+            dataSet1(FitnessType.RULE_SET_INT, GenomeType.RULE_SET, SelectionType.TOURNAMENT, "BASIC_TOURNAMENT_" + (i + 1));
+            averageWriter.addResults("dataset1/results_BASIC_TOURNAMENT_" + (i + 1));
+        }
+        averageWriter.averageWriteClear("dataset1/averages/results_BASIC_TOURNAMENT");
+
+        for (int i = 0; i < 20; i++) {
+            dataSet1(FitnessType.RULE_SET_INT, GenomeType.RULE_SET, SelectionType.ROULETTE, "BASIC_ROULETTE_" + (i + 1));
+            averageWriter.addResults("dataset1/results_BASIC_ROULETTE_" + (i + 1));
+        }
+        averageWriter.averageWriteClear("dataset1/averages/results_BASIC_ROULETTE");
+
+        TOURNAMENT_SIZE = 4;
+        for (int i = 0; i < 10; i++) {
+            TOURNAMENT_SIZE += 1;
+            for (int j = 0; j < 10; j++) {
+                System.out.println("RUN NUMBER " + ++numRuns + " TOURNAMENT_SIZE: " + TOURNAMENT_SIZE);
+                dataSet1(FitnessType.RULE_SET_INT, GenomeType.RULE_SET, SelectionType.TOURNAMENT, "TOURNAMENT_" + TOURNAMENT_SIZE + "_" + (j+1));
+                averageWriter.addResults("dataset1/results_TOURNAMENT_" + TOURNAMENT_SIZE + "_" + (j+1));
+            }
+            averageWriter.averageWriteClear("dataset1/averages/results_TOURNAMENT_" + TOURNAMENT_SIZE);
+        }
+
+        POP = 50;
+        for (int i = 0; i < 10; i++) {
+            POP += 10;
+            TOURNAMENT_SIZE = (int) (POP * 0.1);
+            for (int j = 0; j < 10; j++) {
+                System.out.println("RUN NUMBER " + ++numRuns + " POP SIZE: " + POP);
+                dataSet1(FitnessType.RULE_SET_INT, GenomeType.RULE_SET, SelectionType.TOURNAMENT, "POP_" + POP + "_" + (j+1));
+                averageWriter.addResults("dataset1/results_POP_" + POP + "_" + (j+1));
+            }
+            averageWriter.averageWriteClear("dataset1/averages/results_POP_" + POP);
+        }
+
+        POP = 100;
+        M_RATE = (double) (1 / G_LENGTH);
+        for (int i = 0; i < 10; i++) {
+            M_RATE += 0.1;
+            for (int j = 0; j < 10; j++) {
+                System.out.println("RUN NUMBER " + ++numRuns + " MUTATION RATE: " + M_RATE);
+                dataSet1(FitnessType.RULE_SET_INT, GenomeType.RULE_SET, SelectionType.TOURNAMENT, "MUTATION_" + M_RATE + "_" + (j+1));
+                averageWriter.addResults("dataset1/results_MUTATION_" + M_RATE + "_" + (j+1));
+            }
+            averageWriter.averageWriteClear("dataset1/averages/results_MUTATION_" + M_RATE);
+        }
+
+        G_LENGTH = 0;
+        for (int i = 0; i < 10; i++) {
+            G_LENGTH += 1;
+            M_RATE = 1.0 / (double) G_LENGTH;
+            for (int j = 0; j < 10; j++) {
+                System.out.println("RUN NUMBER " + ++numRuns + " G_LENGTH: " + G_LENGTH);
+                dataSet1(FitnessType.RULE_SET_INT, GenomeType.RULE_SET, SelectionType.TOURNAMENT, "G_LENGTH_" + G_LENGTH + "_" + (j+1));
+                averageWriter.addResults("dataset1/results_G_LENGTH_" + G_LENGTH + "_" + (j+1));
+            }
+            averageWriter.averageWriteClear("dataset1/averages/results_G_LENGTH_" + G_LENGTH);
+        }
+    }
+
+    /**
+     * Run dataset 2 with a bunch of parameter changes.
+     *
+     * @throws FileNotFoundException
+     * @throws IOException
+     */
+    public static void runDataSet2Fiddles()
+            throws FileNotFoundException, IOException {
+        int numRuns = 0;
+
+        POP = 200;
+        G_LENGTH = 10;
+        TOURNAMENT_SIZE = 10;
+        M_RATE = (double) 1 / G_LENGTH;
+        
+        Averager averageWriter = new Averager(1639, 409);
+
+        for (int i = 0; i < 20; i++) {
+            dataSet2(FitnessType.RULE_SET_INT, GenomeType.RULE_SET, SelectionType.TOURNAMENT, "BASIC_TOURNAMENT_" + (i + 1));
+            averageWriter.addResults("dataset2/results_BASIC_TOURNAMENT_" + (i + 1));
+        }
+        averageWriter.averageWriteClear("dataset2/averages/BASIC_TOURNAMENT");
+
+        for (int i = 0; i < 20; i++) {
+            dataSet2(FitnessType.RULE_SET_INT, GenomeType.RULE_SET, SelectionType.ROULETTE, "BASIC_ROULETTE_" + (i + 1));
+            averageWriter.addResults("dataset2/results_BASIC_ROULETTE_" + (i + 1));
+        }
+        averageWriter.averageWriteClear("dataset2/averages/BASIC_ROULETTE");
+
+        TOURNAMENT_SIZE = 4;
+        for (int i = 0; i < 15; i++) {
+            TOURNAMENT_SIZE += 1;
+            for (int j = 0; j < 10; j++) {
+                System.out.println("RUN NUMBER " + ++numRuns + " TOURNAMENT_SIZE: " + TOURNAMENT_SIZE);
+                dataSet2(FitnessType.RULE_SET_INT, GenomeType.RULE_SET, SelectionType.TOURNAMENT, "TOURNAMENT_" + TOURNAMENT_SIZE + "_" + (j+1));
+                averageWriter.addResults("dataset2/results_TOURNAMENT_" + TOURNAMENT_SIZE + "_" + (j + 1));
+            }
+            averageWriter.averageWriteClear("dataset2/averages/TOURNAMENT_" + TOURNAMENT_SIZE);
+            
+        }
+
+        POP = 0;
+        for (int i = 0; i < 10; i++) {
+            POP += 100;
+            TOURNAMENT_SIZE = (int) (POP * 0.1);
+            for (int j = 0; j < 10; j++) {
+                System.out.println("RUN NUMBER " + ++numRuns + " POP SIZE: " + POP);
+                dataSet2(FitnessType.RULE_SET_INT, GenomeType.RULE_SET, SelectionType.TOURNAMENT, "POP_" + POP + "_" + (j+1));
+                averageWriter.addResults("dataset2/results_POP_" + POP + "_" + (j+1));
+            }
+            averageWriter.averageWriteClear("dataset2/averages/POP_" + POP);
+        }
+
+        POP = 200;
+        M_RATE = (double) (1 / G_LENGTH);
+        for (int i = 0; i < 10; i++) {
+            M_RATE += 0.1;
+            for (int j = 0; j < 10; j++) {
+                System.out.println("RUN NUMBER " + ++numRuns + " MUTATION RATE: " + M_RATE);
+                dataSet2(FitnessType.RULE_SET_INT, GenomeType.RULE_SET, SelectionType.TOURNAMENT, "MUTATION_" + M_RATE + "_" + (j+1));
+                averageWriter.addResults("dataset2/results_MUTATION_" + M_RATE + "_" + (j+1));
+            }
+            averageWriter.averageWriteClear("dataset2/averages/MUTATION_" + M_RATE);
+        }
+
+        G_LENGTH = 4;
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 10; j++) {
+                G_LENGTH += 1;
+                M_RATE = 1.0 / (double) G_LENGTH;
+                System.out.println("RUN NUMBER " + ++numRuns + " G_LENGTH: " + G_LENGTH);
+                dataSet2(FitnessType.RULE_SET_INT, GenomeType.RULE_SET, SelectionType.TOURNAMENT, "G_LENGTH_" + G_LENGTH + "_" + (j+1));
+                averageWriter.addResults("dataset2/results_G_LENGTH_" + G_LENGTH + "_" + (j+1));
+            }
+            averageWriter.averageWriteClear("dataset2/averages/G_LENGTH_" + G_LENGTH);
+        }
+    }
+
+    /**
+     *
+     * run dataset 3 with a bunch of parameter changes.
+     *
+     * @throws FileNotFoundException
+     * @throws IOException
+     */
+    public static void runDataSet3Fiddles()
+            throws FileNotFoundException, IOException {
+        int numRuns = 0;
+
+        POP = 200;
+        G_LENGTH = 10;
+        TOURNAMENT_SIZE = 10;
+        M_RATE = (double) 1 / G_LENGTH;
+        
+        Averager averageWriter = new Averager(1600, 400);
+
+        for (int i = 0; i < 20; i++) {
+            dataSet3(FitnessType.RULE_SET_REAL, GenomeType.RULE_SET, SelectionType.TOURNAMENT, "BASIC_TOURNAMENT_" + (i + 1));
+            averageWriter.addResults("dataset3/results_BASIC_TOURNAMENT" + (i + 1));
+        }
+        averageWriter.averageWriteClear("dataset3/averages/BASIC_TOURNAMENT");
+  
+
+        for (int i = 0; i < 20; i++) {
+            dataSet3(FitnessType.RULE_SET_REAL, GenomeType.RULE_SET, SelectionType.ROULETTE, "BASIC_ROULETTE_" + (i + 1));
+            averageWriter.addResults("dataset3/results_BASIC_ROULETTE_" + (i + 1));
+        }
+        averageWriter.averageWriteClear("dataset3/averages/BASIC_ROULETTE");
+
+        TOURNAMENT_SIZE = 4;
+        for (int i = 0; i < 15; i++) {
+            TOURNAMENT_SIZE += 1;
+            TOURNAMENT_SIZE = (int) (POP * 0.1);
+            for (int j = 0; j < 10; j++) {
+                System.out.println("RUN NUMBER " + ++numRuns + " TOURNAMENT_SIZE: " + TOURNAMENT_SIZE);
+                dataSet3(FitnessType.RULE_SET_REAL, GenomeType.RULE_SET, SelectionType.TOURNAMENT, "TOURNAMENT_" + TOURNAMENT_SIZE + "_" + (j+1));
+                averageWriter.addResults("dataset3/results_TOURNAMENT_" + TOURNAMENT_SIZE + "_" + (j + 1));
+            }
+            averageWriter.averageWriteClear("dataset3/averages/TOURNAMENT_" + TOURNAMENT_SIZE);
+        }
+
+        TOURNAMENT_SIZE = 10;
+        POP = 0;
+        for (int i = 0; i < 10; i++) {
+            POP += 100;
+            TOURNAMENT_SIZE = (int) (POP * 0.1);
+            for (int j = 0; j < 10; j++) {
+                System.out.println("RUN NUMBER " + ++numRuns + " POP SIZE: " + POP);
+                dataSet3(FitnessType.RULE_SET_REAL, GenomeType.RULE_SET, SelectionType.TOURNAMENT, "POP_" + POP + "_" + (j+1));
+                averageWriter.addResults("dataset3/results/results_POP_" + POP + "_" + (j+1));
+            }
+            averageWriter.averageWriteClear("dataset3/averages/POP_" + POP);
+        }
+
+        POP = 200;
+        M_RATE = (double) (1 / G_LENGTH);
+        for (int i = 0; i < 10; i++) {
+            M_RATE += 0.1;
+            for (int j = 0; j < 10; j++) {
+                System.out.println("RUN NUMBER " + ++numRuns + " MUTATION RATE: " + M_RATE);
+                dataSet3(FitnessType.RULE_SET_REAL, GenomeType.RULE_SET, SelectionType.TOURNAMENT, "MUTATION_" + M_RATE + "_" + (j+1));
+                averageWriter.addResults("dataset3/results/results_MUTATION_" + M_RATE + "_" + (j+1));
+            }
+            averageWriter.averageWriteClear("dataset3/averages/MUTATION_" + M_RATE);
+        }
+
+        G_LENGTH = 4;
+        for (int i = 0; i < 10; i++) {
+            G_LENGTH += 1;
+            M_RATE = 1.0 / (double) G_LENGTH;
+            for (int j = 0; j < 10; j++) {
+                System.out.println("RUN NUMBER " + ++numRuns + " G_LENGTH: " + G_LENGTH);
+                dataSet3(FitnessType.RULE_SET_REAL, GenomeType.RULE_SET, SelectionType.TOURNAMENT, "G_LENGTH_" + G_LENGTH + "_" + (j+1));
+                averageWriter.addResults("dataset3/results/results_G_LENGTH_" + G_LENGTH + "_" + (j+1));
+            }
+            averageWriter.averageWriteClear("dataset3/averages/G_LENGTH_" + G_LENGTH);
+        }
+    }
+
+    /**
+     *
+     * Run the prototype set, which is a bit genome attempting to solve the 'all
+     * ones' problem.
+     *
+     * @param fit specific fitness type
+     * @param genome type of genome to use
+     * @param sel selection algorithm to use
+     * @param extension extension to put on the generated results file.
+     * @throws IOException
+     */
+    public static void prototypeSet(FitnessType fit, GenomeType genome, SelectionType sel, String extension)
+            throws IOException {
+        ArrayList<CandidateSolution> initialGeneration = new ArrayList<>(POP);
+        SimpleResultWriter resultWriter = new SimpleResultWriter(POP, G_LENGTH, "", extension, true);
+
+        // generate the initial population 
         for (int i = 0; i < POP; i++) {
             CandidateSolution individual = new BinaryCandidateSolution(GenomeHelper.generateBitGenome(G_LENGTH));
             FitnessFunctions.calculateFitnessTotalValue(individual);
             initialGeneration.add(individual);
         }
 
-        geneticAlgorithm(initialGeneration, null, fit, sel);
+        // run the generic algorithm
+        geneticAlgorithm(initialGeneration, null, fit, sel, resultWriter);
     }
-    
+
     // BEST SETTINGS SO FAR: POP 100, G_LENGTH 10, STOP_GENERATIONS 100
-    public static boolean dataSet1(FitnessType fit, GenomeType genome, SelectionType sel) 
-        throws FileNotFoundException{
-        TreeMap<String, String> fullLookup = readData("data1.txt"); 
+    /**
+     *
+     * Run dataset1, which can be represented as a string that maps onto the
+     * output of a lookup table, or as a rule set.
+     *
+     * @param fit specific fitness type
+     * @param genome type of genome to use
+     * @param sel selection algorithm to use
+     * @param extension extension to put on the generated results file.
+     * @return
+     * @throws FileNotFoundException
+     * @throws IOException
+     */
+    public static boolean dataSet1(FitnessType fit, GenomeType genome, SelectionType sel, String extension)
+            throws FileNotFoundException, IOException {
+        // read the data from the file, and put it in a lookup table.
+        TreeMap<String, String> fullLookup = readData("data1.txt");
         TreeMap<String, String> trainingData = null;
-        TreeMap<String, String> realData  = null;
+        TreeMap<String, String> realData = null;
         ArrayList<CandidateSolution> initialGeneration = new ArrayList<>(POP);
-        
+        SimpleResultWriter resultWriter = new SimpleResultWriter(POP, G_LENGTH, "dataset1", extension, true);
+
+        // depending on the genome type being used, split the data into training data and test data.
         switch (genome) {
-                case BIT:
-                    // in this case, the data can't be seperated 
-                    // without breaking the training, as the lookup method is
-                    // just a noddy example.
-                    trainingData = new TreeMap<>(fullLookup);
-                    realData = new TreeMap<>(fullLookup);
-                    break; 
-                case RULE_SET:
-                    TreeMap[] maps = getTrainingData(fullLookup, TRAINING_POP);
-                    trainingData = maps[0];
-                    realData = maps[1];
-                    break;
-                default:
-                    throw new RuntimeException("dataSet1 requires GenomeType to be BIT or RULE_SET. Actual type: " + genome.name());
+            case BIT:
+                // in this case, the data can't be seperated 
+                // without breaking the training, as the lookup method is
+                // just a noddy example.
+                trainingData = new TreeMap<>(fullLookup);
+                realData = new TreeMap<>(fullLookup);
+                break;
+            case RULE_SET:
+                TreeMap[] maps = getTrainingData(fullLookup, TRAINING_POP);
+                trainingData = maps[0];
+                realData = maps[1];
+                break;
+            default:
+                throw new RuntimeException("dataSet1 requires GenomeType to be BIT or RULE_SET. Actual type: " + genome.name());
         }
-        
+
+        // generate the initial population, depending on the genome type being used.
         for (int i = 0; i < POP; i++) {
             CandidateSolution individual;
             switch (genome) {
@@ -148,33 +427,46 @@ public class GeneticAlgorithm {
                 default:
                     throw new RuntimeException("dataSet1 requires GenomeType to be BIT or RULE_SET. Actual type: " + genome.name());
             }
-            
+
             initialGeneration.add(individual);
         }
-        
-        CandidateSolution bestSolution = geneticAlgorithm(initialGeneration, trainingData, fit, sel); // train;
-        return testRealData(bestSolution, realData, trainingData, fit); // test the best solution on the real data.
+
+        CandidateSolution bestSolution = geneticAlgorithm(initialGeneration, trainingData, fit, sel, resultWriter); // train;
+        return testRealData(bestSolution, realData, trainingData, fit, resultWriter); // test the best solution on the real data.
     }
-    
-    // BEST SETTINGS SO FAR: POP 100, G_LENGTH 20, STOP_GENERATIONS 100.
-    public static boolean dataSet2(FitnessType fit, GenomeType genome, SelectionType sel) 
-    throws FileNotFoundException {
-        TreeMap<String, String> fullLookup = readData("data2.txt"); 
+
+    /**
+     * Run dataset2, which can be represented as a rule set.
+     *
+     * @param fit specific fitness type
+     * @param genome type of genome to use
+     * @param sel selection algorithm to use
+     * @param extension extension to put on the generated results file.
+     * @return
+     * @throws FileNotFoundException
+     * @throws IOException
+     */
+    public static boolean dataSet2(FitnessType fit, GenomeType genome, SelectionType sel, String extension)
+            throws FileNotFoundException, IOException {
+        // read data
+        TreeMap<String, String> fullLookup = readData("data2.txt");
         TreeMap<String, String> trainingData = null;
-        TreeMap<String, String> realData  = null;
+        TreeMap<String, String> realData = null;
         ArrayList<CandidateSolution> initialGeneration = new ArrayList<>(POP);
-        
+        SimpleResultWriter resultWriter = new SimpleResultWriter(POP, G_LENGTH, "dataset2", extension, true);
+
+        // split data into test and training.
         switch (genome) {
             case RULE_SET:
-            case MLP:
                 TreeMap[] maps = getTrainingData(fullLookup, TRAINING_POP);
                 trainingData = maps[0];
                 realData = maps[1];
                 break;
             default:
-                throw new RuntimeException("dataSet2 requires GenomeType to be RULE_SET or MLP. Actual type: " + genome.name());
+                throw new RuntimeException("dataSet2 requires GenomeType to be RULE_SET. Actual type: " + genome.name());
         }
-        
+
+        // generate initial population
         for (int i = 0; i < POP; i++) {
             CandidateSolution individual;
             switch (genome) {
@@ -182,40 +474,51 @@ public class GeneticAlgorithm {
                     individual = new BinaryRuleSetCandidateSolution(GenomeHelper.generateBinaryRuleGenome(G_LENGTH, 12)); // generate G_LENGTH rules.
                     FitnessFunctions.calculateFitnessBinaryRuleSet(individual, trainingData);
                     break;
-                case MLP:
-                    // what limits should the weights have? How many weights should I have?
-                    individual = new MLPCandidateSolution(GenomeHelper.generateDoubleGenome(0, 0, 0));
-                    FitnessFunctions.calculateFitnessMLP(individual, trainingData, NUMBER_OF_HIDDEN_NODES);
-                    break;
                 default:
-                    throw new RuntimeException("dataSet1 requires GenomeType to be RULE_SET or MLP. Actual type: " + genome.name());
+                    throw new RuntimeException("dataSet1 requires GenomeType to be RULE_SET. Actual type: " + genome.name());
             }
-            
+
             initialGeneration.add(individual);
         }
-        
-        CandidateSolution bestSolution = geneticAlgorithm(initialGeneration, trainingData, fit, sel);
-        return testRealData(bestSolution, realData, trainingData, fit); // test the best solution on the real data.
+
+        CandidateSolution bestSolution = geneticAlgorithm(initialGeneration, trainingData, fit, sel, resultWriter);
+        return testRealData(bestSolution, realData, trainingData, fit, resultWriter); // test the best solution on the real data.
     }
-            
-    public static boolean dataSet3(FitnessType fit, GenomeType genome, SelectionType sel) 
-    throws FileNotFoundException {
-        TreeMap<String, String> fullLookup = readData("data3.txt"); 
+
+    /**
+     *
+     * run dataset 3, which can be represented as either a rule set or a set of
+     * weights for a multi-layer perceptron.
+     *
+     * @param fit specific fitness type
+     * @param genome type of genome to use
+     * @param sel selection algorithm to use
+     * @param extension extension to put on the generated results file.
+     * @return
+     * @throws FileNotFoundException
+     * @throws IOException
+     */
+    public static boolean dataSet3(FitnessType fit, GenomeType genome, SelectionType sel, String extension)
+            throws FileNotFoundException, IOException {
+        TreeMap<String, String> fullLookup = readData("data3.txt");
         TreeMap<String, String> trainingData = null;
-        TreeMap<String, String> realData  = null;
+        TreeMap<String, String> realData = null;
         ArrayList<CandidateSolution> initialGeneration = new ArrayList<>(POP);
-        
+        SimpleResultWriter resultWriter = new SimpleResultWriter(POP, G_LENGTH, "dataset3", extension, true);
+
+        // get the training data.
         switch (genome) {
             case MLP:
             case RULE_SET:
-                TreeMap[] maps = getTrainingData(fullLookup, 0.8);
+                TreeMap[] maps = getTrainingData(fullLookup, TRAINING_POP);
                 trainingData = maps[0];
                 realData = maps[1];
                 break;
             default:
                 throw new RuntimeException("dataSet3 requires GenomeType to be RULE_SET or MLP. Actual type: " + genome.name());
         }
-        
+
+        // generate the initial generation.
         for (int i = 0; i < POP; i++) {
             CandidateSolution individual;
             switch (genome) {
@@ -233,20 +536,28 @@ public class GeneticAlgorithm {
                 default:
                     throw new RuntimeException("dataSet3 requires GenomeType to be RULE_SET or MLP. Actual type: " + genome.name());
             }
-            
+
             initialGeneration.add(individual);
         }
-        
-        CandidateSolution bestSolution = geneticAlgorithm(initialGeneration, trainingData, fit, sel);
-        return testRealData(bestSolution, realData, trainingData, fit); // test the best solution on the real data.
-    }
-    
-    
 
-    public static CandidateSolution geneticAlgorithm(ArrayList<CandidateSolution> oldGeneration, TreeMap<String, String> lookup, FitnessType fit, SelectionType sel) {
+        // test the GA.
+        CandidateSolution bestSolution = geneticAlgorithm(initialGeneration, trainingData, fit, sel, resultWriter);
+        return testRealData(bestSolution, realData, trainingData, fit, resultWriter); // test the best solution on the real data.
+    }
+
+    /**
+     *
+     * The genetic algorithm entry point.
+     *
+     * @param oldGeneration initial generation
+     * @param lookup lookup table containing the inputs and expected values
+     * @param fit specific fitness function being used
+     * @param sel selection algorithm to use
+     * @param resultWriter the result writer instance to use
+     * @return
+     */
+    public static CandidateSolution geneticAlgorithm(ArrayList<CandidateSolution> oldGeneration, TreeMap<String, String> lookup, FitnessType fit, SelectionType sel, SimpleResultWriter resultWriter) {
         try {
-            SimpleResultWriter resultWriter = new SimpleResultWriter(POP, G_LENGTH, true);
-            resultWriter.write(0, oldGeneration);
 
             ArrayList<CandidateSolution> newGeneration;
             int bestPossible = lookup.size();
@@ -257,10 +568,15 @@ public class GeneticAlgorithm {
 
             int overallBestFitness = 0;
             for (int i = 0; i < NUM_GENERATIONS; i++) {
+
+                // generate a new generation
                 newGeneration = newGeneration(oldGeneration, PERCENT_TO_KEEP, lookup, fit, sel);
+                // write the results and find the bestFitness.
                 bestFitness = resultWriter.write((i + 1), newGeneration);
                 oldGeneration = newGeneration;
-                
+
+                // if the fitness is the max fitness, and STOP_GENERATIONS have
+                // passed, stop the run.
                 if (reachedMaxFitness) {
                     ++count;
                     if (count > STOP_GENERATIONS && bestFitness == bestPossible) {
@@ -272,20 +588,20 @@ public class GeneticAlgorithm {
                         break;
                     }
                 }
-                
+
+                // if the fitness has been constant for some time, stop the run.
                 if (bestFitness == overallBestFitness) {
                     fitnessGens++;
                 } else {
                     fitnessGens = 0;
                     overallBestFitness = bestFitness;
                 }
-                if (fitnessGens > 2000) {
+                if (fitnessGens > 1000) {
                     break;
                 }
             }
-            
-            resultWriter.close();
-            
+
+            // get the best solution, if one exists, and return it.
             CandidateSolution bestSolution = null;
             for (CandidateSolution individual : oldGeneration) {
                 if (bestSolution == null || bestSolution.getFitness() <= individual.getFitness()) {
@@ -298,13 +614,26 @@ public class GeneticAlgorithm {
         }
     }
 
+    /**
+     *
+     * Generate a new generation from an old generation. parents are selected
+     * from the old generation, and children are created by using crossover and
+     * mutation on the parents.
+     *
+     * @param oldGeneration old generation from which the new one is created
+     * @param percentToKeep keep a percentage of the best parents from the old
+     * gen.
+     * @param lookup table with inputs and expected outputs.
+     * @param fit specific fitness function to use.
+     * @param sel selection algorithm to use.
+     * @return
+     */
     public static ArrayList<CandidateSolution> newGeneration(ArrayList<CandidateSolution> oldGeneration, double percentToKeep, TreeMap<String, String> lookup, FitnessType fit, SelectionType sel) {
         ArrayList<CandidateSolution> parents;
         ArrayList<CandidateSolution> newGeneration = new ArrayList<>();
-        
-        
+
         // keep the best solutions, as determined by PERCENT_TO_KEEP
-        int numberToKeep = (int)(PERCENT_TO_KEEP * oldGeneration.size());
+        int numberToKeep = (int) (PERCENT_TO_KEEP * oldGeneration.size());
         ArrayList<CandidateSolution> best = new ArrayList<>();
         if (numberToKeep > 0) {
             ArrayList<CandidateSolution> sortedGeneration = new ArrayList<>(oldGeneration);
@@ -315,7 +644,8 @@ public class GeneticAlgorithm {
                 best.add(sortedGeneration.get(i));
             }
         }
-         
+
+        // select the parents to use.
         switch (sel) {
             case TOURNAMENT:
                 parents = SelectionAlgorithms.tournamentSelection(oldGeneration, POP, TOURNAMENT_SIZE);
@@ -328,35 +658,40 @@ public class GeneticAlgorithm {
         }
 
         Random rand = new Random();
-        
-        double mutationRate = (fit == FitnessType.RULE_SET_INT) ? (M_RATE / (parents.get(0).getGenome().size()/G_LENGTH)) : M_RATE;
-        if (fit == FitnessType.RULE_SET_INT || fit == FitnessType.RULE_SET_REAL) {
+
+        double mutationRate;
+        if (fit == FitnessType.MLP) {
             mutationRate = ANN_M_RATE;
-        } else if (fit == FitnessType.MLP) {
-            mutationRate = M_RATE / (parents.get(0).getGenome().size()/G_LENGTH);
         } else {
             mutationRate = M_RATE;
         }
         int popLimit = parents.size() - numberToKeep;
-        
-        // change to allow for odd populations?
+
+        // generate a new population using crossover and mutation.
         for (int i = 0; i < popLimit; i = i + 2) {
 
             CandidateSolution[] currentParents = new CandidateSolution[2];
             currentParents[0] = parents.get(i);
             currentParents[1] = parents.get(i + 1);
             int point = rand.nextInt(currentParents[0].getSize());
+            // probability that crossover occurs.
             double crossoverRate = rand.nextFloat();
+            
+            // crossover with both parents
             for (int j = 0; j <= 1; j++) {
                 int k = (j == 0) ? 1 : 0; // j == 0, k == 1 and j == 1, k == 0.
                 CandidateSolution child;
+                // make sure that crossover is being used this run.
                 if (crossoverRate < C_RATE) {
                     child = currentParents[j].crossover(point, currentParents[k]);
                 } else {
                     child = currentParents[j];
                 }
-                
+
+                // attempt to mutate the child
                 child.mutation(mutationRate);
+                
+                // find the fitness value of the child.
                 switch (fit) {
                     case TOTAL_VALUE:
                         FitnessFunctions.calculateFitnessTotalValue(child);
@@ -374,46 +709,68 @@ public class GeneticAlgorithm {
                         FitnessFunctions.calculateFitnessMLP(child, lookup, NUMBER_OF_HIDDEN_NODES);
                         break;
                 }
+                // finally, add the child.
                 newGeneration.add(child);
             }
 
         }
 
+        // shuffle the generation, so there's no order, and the list is random.
+        // This stops the best solutions from being at the front.
         Collections.shuffle(newGeneration);
         return newGeneration;
     }
-    
-    public static TreeMap<String, String> readData(String name) 
-        throws FileNotFoundException {
+
+    /**
+     *
+     * read a dataset, and put it's values into a map. The inputs are the key;
+     * and the values are the output.
+     * 
+     * @param name
+     * @return
+     * @throws FileNotFoundException
+     */
+    public static TreeMap<String, String> readData(String name)
+            throws FileNotFoundException {
         File file = new File("data/" + name).getAbsoluteFile();
         Scanner scan = new Scanner(file);
-        
+
         TreeMap<String, String> lookup = new TreeMap<>();
-        
+
         if (scan.hasNextLine()) {
             scan.nextLine(); // get rid of header, I don't need it.
         }
-        
+
         while (scan.hasNextLine()) {
             String line = scan.nextLine();
             String[] words = line.split(" "); // split on space.
             String key = "";
             for (int i = 0; i < words.length; i++) {
                 if (i == (words.length - 1)) {
+                    // place the key and value in the map.
                     key = key.trim();
                     lookup.put(key, words[i]);
                 } else {
+                    // place the next input value in the key.
                     key += words[i] + " ";
                 }
             }
         }
         return lookup;
     }
-    
+
+    /**
+     *
+     * Split the full dataset into training and real data.
+     * 
+     * @param fullLookup
+     * @param percentage
+     * @return
+     */
     public static TreeMap<String, String>[] getTrainingData(TreeMap fullLookup, double percentage) {
         TreeMap<String, String> trainingData = new TreeMap(fullLookup);
         TreeMap<String, String> realData = new TreeMap();
-        
+
         int size = trainingData.size();
         int elements = (int) Math.ceil(size * percentage);
         if (elements < size) {
@@ -429,15 +786,32 @@ public class GeneticAlgorithm {
         TreeMap[] maps = new TreeMap[2];
         maps[0] = trainingData;
         maps[1] = realData;
-        
+
         return maps;
     }
-    
-    public static boolean testRealData(CandidateSolution bestSolution, TreeMap<String, String> realData, TreeMap<String, String> trainingData, FitnessType fit) {
+
+    /**
+     *
+     * given a solution, test it against the real data to see how well it's
+     * learnt the dataSet.
+     * 
+     * @param bestSolution the best solution found in the GA
+     * @param realData data that the solution hasn't seen.
+     * @param trainingData the data that the solution was trained on.
+     * @param fit the specific fitness function to use
+     * @param resultWriter the result writer
+     * @return
+     * @throws IOException
+     */
+    public static boolean testRealData(CandidateSolution bestSolution, TreeMap<String, String> realData, TreeMap<String, String> trainingData, FitnessType fit, SimpleResultWriter resultWriter)
+            throws IOException {
         boolean pass = true;
         int realPassed = 0;
         int trainingPassed = 0;
-        
+        RuleSet ruleSet;
+        String ruleRepresentation = "";
+
+        // calculate how much of the data the solution gets correct
         switch (fit) {
             case LOOKUP_TABLE:
                 realPassed = FitnessFunctions.calculateFitnessLookupTable(bestSolution, realData);
@@ -446,10 +820,14 @@ public class GeneticAlgorithm {
             case RULE_SET_INT:
                 realPassed = FitnessFunctions.calculateFitnessBinaryRuleSet(bestSolution, realData);
                 trainingPassed = FitnessFunctions.calculateFitnessBinaryRuleSet(bestSolution, trainingData);
+                ruleSet = new BinaryRuleSet(bestSolution.toString(), getRuleSize(bestSolution.getGenome()));
+                ruleRepresentation = ruleSet.ruleSetRepresentation();
                 break;
             case RULE_SET_REAL:
                 realPassed = FitnessFunctions.calculateFitnessRealRuleSet(bestSolution, realData);
                 trainingPassed = FitnessFunctions.calculateFitnessRealRuleSet(bestSolution, trainingData);
+                ruleSet = new RealRuleSet(bestSolution.getGenome(), 13);
+                ruleRepresentation = ruleSet.ruleSetRepresentation();
                 break;
             case MLP:
                 realPassed = FitnessFunctions.calculateFitnessMLP(bestSolution, realData, NUMBER_OF_HIDDEN_NODES);
@@ -459,40 +837,36 @@ public class GeneticAlgorithm {
                 System.out.println("Cannot test fitness type: " + fit.name());
                 break;
         }
-        
-        int totalPassed = realPassed + trainingPassed;
-        
+
+        // find out how much of the data wasn't correctly classified.
         int realFailed = realData.size() - realPassed;
         int trainingFailed = trainingData.size() - trainingPassed;
         int totalFailed = realFailed + trainingFailed;
-        
-        DecimalFormat df = new DecimalFormat("#.##");
-        
-        String realPercentagePass = df.format((double)realPassed/realData.size() * 100);
-        String realPercentageFail = df.format(100 - Double.valueOf(realPercentagePass));
-        String trainingPercentagePass = df.format((double)trainingPassed/trainingData.size() * 100);
-        String trainingPercentageFail = df.format(100 - Double.valueOf(trainingPercentagePass));
-        String totalPercentagePass = df.format((double)totalPassed/(trainingData.size()+realData.size()) * 100);
-        String totalPercentageFail = df.format(100 - Double.valueOf(totalPercentagePass));
-        
-        System.out.println("\nFinal Results:\n");
-        System.out.println("Real data:\nPASS: " + realPassed + "\nFAIL: " + realFailed + "\nTOTAL: " + realData.size());
-        System.out.println("PERCENT PASSED: " + realPercentagePass + "%\nPERCENT FAILED: " + realPercentageFail + "%");
-        System.out.println("");
-        System.out.println("Training data:\nPASS: " + trainingPassed + "\nFAIL: " + trainingFailed + "\nTOTAL: " + trainingData.size());
-        System.out.println("PERCENT PASSED: " + trainingPercentagePass + "%\nPERCENT FAILED: " + trainingPercentageFail + "%");
-        System.out.println("");
-        System.out.println("Total data:\nPASS: " + totalPassed + "\nFAIL: " + totalFailed + "\nTOTAL: " + (realData.size() + trainingData.size()));
-        System.out.println("PERCENT PASSED: " + totalPercentagePass + "%\nPERCENT FAILED: " + totalPercentageFail + "%");
-        System.out.println("");
-        
+
+        // write the final results in the results file.
+        resultWriter.writeFinalResults(realPassed, trainingPassed, realData.size(), trainingData.size(), ruleRepresentation);
+
         if (totalFailed != 0) {
-            System.out.println("FAIL :(");
             pass = false;
-        } else {
-            System.out.println("PASS!!!");
         }
-        
+
+        resultWriter.close();
         return pass;
+    }
+
+    // hacky function to get the size of the rules being tested. Assume the
+    // rule length is 12, unless the total size of the genome is less than
+    // the LCM of 7 and 12. This is because rule sets from data one are likely
+    // to have less than 10 rules.
+    static int getRuleSize(List genome) {
+        int ruleSize;
+        if (genome.size() % 7 == 0 && genome.size() % 12 == 0) {
+            ruleSize = 12;
+        } else if (genome.size() % 7 == 0) {
+            ruleSize = 7;
+        } else {
+            ruleSize = 12;
+        }
+        return ruleSize;
     }
 }

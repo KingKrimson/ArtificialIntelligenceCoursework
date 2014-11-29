@@ -12,11 +12,22 @@ import java.util.Collections;
 import java.util.Random;
 
 /**
- *
+ * a collection of selection algorithms.
  * @author ad3-brown
  */
 public class SelectionAlgorithms {
-        public static ArrayList<CandidateSolution> rouletteSelection(ArrayList<CandidateSolution> oldGeneration) {
+
+    /**
+     * chooses a random number, and iterates through a list of individuals, summing up their
+     * fitness. Once the summed fitness is greater than the random number, the 
+     * current individual becomes a parent.
+     * The algorithm does this until the population of parents matches the population of the
+     * generation it was given as a parameter.
+     * 
+     * @param oldGeneration
+     * @return
+     */
+    public static ArrayList<CandidateSolution> rouletteSelection(ArrayList<CandidateSolution> oldGeneration) {
         int totalFitness = 0;
 
         Random rand = new Random();
@@ -44,6 +55,18 @@ public class SelectionAlgorithms {
         return parents;
     }
     
+    /**
+     *
+     * chooses tournamentSize random competitors from the given generation. Adds
+     * the competitor with the best fitness to the pool of parents to be returned.
+     * it does this until the population size of the parents reaches the population
+     * size of the generation parameter. 
+     * 
+     * @param oldGeneration
+     * @param pop
+     * @param tournamentSize size of a tournament.
+     * @return
+     */
     public static ArrayList<CandidateSolution> tournamentSelection(ArrayList<CandidateSolution> oldGeneration, int pop, int tournamentSize) {
         ArrayList<CandidateSolution> parents = new ArrayList<>(); 
         

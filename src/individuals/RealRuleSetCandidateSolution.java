@@ -18,18 +18,34 @@ public class RealRuleSetCandidateSolution extends CandidateSolution<Double> {
 
     int ruleSize;
 
+    /**
+     *
+     * @param genome
+     */
     public RealRuleSetCandidateSolution(ArrayList<Double> genome) {
         super(genome);
         this.ruleSize = 13;
     }
 
+    /**
+     *
+     * @param probability
+     */
     @Override
     public void mutation(double probability) {
         shuffleMutation(probability);
+        // modify the probablilty so that it's proportional to the overall length
+        // of the genome, rather than the number of rules in the genome.
         double geneProbability = probability / (size / ruleSize);
         geneCreepMutation(geneProbability);
     }
 
+    /**
+     * Shuffle the rules to create a new ordering. This might allow a 'correct' rule
+     * to capture inputs that were previously being captured by an 'incorrect' rule
+     * 
+     * @param probabilty
+     */
     public void shuffleMutation(double probabilty) {
         Random randGen = new Random();
         double rand = randGen.nextDouble();
@@ -49,6 +65,13 @@ public class RealRuleSetCandidateSolution extends CandidateSolution<Double> {
         }
     }
 
+    /**
+     * For each gene, add or subtract a value from the gene if the probability
+     * is met. The value to subtract is in the normally distributed range
+     * between -0.25 and 0.25. This is known as creep mutation.
+     *
+     * @param probability
+     */
     public void geneCreepMutation(double probability) {
         Random randGen = new Random();
         double rand;
@@ -81,22 +104,18 @@ public class RealRuleSetCandidateSolution extends CandidateSolution<Double> {
         }
     }
 
-    public void geneRandomMutation(double probability) {
-        Random randGen = new Random();
-        double rand;
-        int totalMutations = 0;
-
-        for (int i = 0; i < this.getSize(); i++) {
-            rand = randGen.nextDouble();
-            if (rand <= probability) {
-                //System.out.println("MUTATING POINT " + i);
-                totalMutations++;
-                // normal distribution of +- 0.25
-                genome.set(i, randGen.nextDouble());
-            }
-        }
-    }
-
+    /**
+     * Given another CandidateSolution and a point to crossover, perform the
+     * crossover. This CandidateSolution becomes the first section of the new
+     * solution, and the parameter CandidateSolution becomes the second section.
+     *
+     * To get two children from two parents, call this function on both of them,
+     * with the other parent as a parameter.
+     *
+     * @param point
+     * @param partner
+     * @ret
+     */
     @Override
     public CandidateSolution crossover(int point, CandidateSolution partner) {
 
