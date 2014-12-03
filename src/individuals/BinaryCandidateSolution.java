@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.Random;
 
 /**
- *
+ * an individual simply consisting of 1's and 0's.
  * @author ad3-brown
  */
 public class BinaryCandidateSolution extends CandidateSolution<Integer> {

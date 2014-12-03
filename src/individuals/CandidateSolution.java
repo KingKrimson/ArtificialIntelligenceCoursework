@@ -56,7 +56,7 @@ public abstract class CandidateSolution<T> implements Comparable<CandidateSoluti
     public abstract CandidateSolution crossover(int point, CandidateSolution partner);
 
     /**
-     * Mutation signature. Takes a probability, which is the probablity to mutate.
+     * Mutation signature. Takes a probability, which is the probability to mutate.
      * @param probability
      */
     public abstract void mutation(double probability);

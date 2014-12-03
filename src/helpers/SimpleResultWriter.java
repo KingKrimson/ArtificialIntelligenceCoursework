@@ -181,14 +181,20 @@ public class SimpleResultWriter {
 
 
         System.out.println("\nFinal Results:\n");
-        System.out.println("Training data:\nPASS: " + trainingPassed + "\nFAIL: " + trainingFailed + "\nTOTAL: " + trainingSize);
-        System.out.println("PERCENT PASSED: " + trainingPercentagePass + "%\nPERCENT FAILED: " + trainingPercentageFail + "%");
+        System.out.println("Training data:\nPASS: " + trainingPassed + "\nFAIL: " + trainingFailed 
+                + "\nTOTAL: " + trainingSize);
+        System.out.println("PERCENT PASSED: " + trainingPercentagePass 
+                + "%\nPERCENT FAILED: " + trainingPercentageFail + "%");
         System.out.println("");
-        System.out.println("Real data:\nPASS: " + realPassed + "\nFAIL: " + realFailed + "\nTOTAL: " + realSize);
-        System.out.println("PERCENT PASSED: " + realPercentagePass + "%\nPERCENT FAILED: " + realPercentageFail + "%");
+        System.out.println("Real data:\nPASS: " + realPassed + "\nFAIL: " 
+                + realFailed + "\nTOTAL: " + realSize);
+        System.out.println("PERCENT PASSED: " + realPercentagePass + "%\nPERCENT FAILED: " 
+                + realPercentageFail + "%");
         System.out.println("");
-        System.out.println("Total data:\nPASS: " + totalPassed + "\nFAIL: " + totalFailed + "\nTOTAL: " + (realSize + trainingSize));
-        System.out.println("PERCENT PASSED: " + totalPercentagePass + "%\nPERCENT FAILED: " + totalPercentageFail + "%");
+        System.out.println("Total data:\nPASS: " + totalPassed + "\nFAIL: " + totalFailed 
+                + "\nTOTAL: " + (realSize + trainingSize));
+        System.out.println("PERCENT PASSED: " + totalPercentagePass + "%\nPERCENT FAILED: " 
+                + totalPercentageFail + "%");
         System.out.println("");
 
         if (totalFailed != 0) {
