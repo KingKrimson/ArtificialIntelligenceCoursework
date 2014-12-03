@@ -1,0 +1,27 @@
+1.  002220 = 0, 102022 = 0, 012202 = 0, 110222 = 0, 222222 = 1
+2.  002220 = 0, 012202 = 0, 102022 = 0, 110222 = 0, 222222 = 1
+3.  102122 = 1, 002221 = 1, 111222 = 1, 012212 = 1, 222222 = 0
+4.  111222 = 1, 012212 = 1, 102122 = 1, 002221 = 1, 222222 = 0
+5.  012212 = 1, 102122 = 1, 002221 = 1, 111222 = 1, 222222 = 0
+
+
+
+
+To try and determine the relationship between the input data and the output data, 10 rule sets were collected from
+fully passing solutions, each with a rule length of 5 (appendix 1). By looking at each of the rule sets, some patterns became apparent. 
+
+1. The first 4 rules wildcarded 3 of the input bits, but these wildcarded bits never included the first two bits. The remaining unwildcarded input bit has a distinct position in each of the rules. 
+2. The output value of the first 4 rules was only ever 1 or 0; two rules in the set could not have two diffrent outputs. This output bit also had the same value as the remaining unwildcarded input bit.
+3. The final rule wildcarded every bit, and the output was the bit value not captured by the first 4 rules.
+   
+From these patterns, it was concluded that for each of the 4 different permutations of the first two input bits, the output would be equal to the value of the other unwildcarded input bit. 
+The following psuedocode explains this relationship: 
+if (input[0 to 1] == 00) {
+	output = input[5]
+} else if (input[0 to 1] == 01) {
+	output = input[4]
+} else if (input[0 to 1] == 10) {
+	output = input[3]
+} else if (input[0 to 1] == 11) {
+	output = input[2]
+}

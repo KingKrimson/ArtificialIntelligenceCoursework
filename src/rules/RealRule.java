@@ -81,14 +81,14 @@ public class RealRule extends Rule {
     public String ruleRepresentation() {
         String ruleString = "";
         for (int i = 0; i < dConditions.size(); i = i+2) {
-            List<Double> localConditions = dConditions.subList((i*2), (i*2)+2);
+            List<Double> localConditions = dConditions.subList(i, i+2);
             Collections.sort(localConditions);
-            ruleString += localConditions.get(0) + "-" + localConditions.get(i);
-            if (i != dConditions.size() - 1) {
+            ruleString += localConditions.get(0) + "-" + localConditions.get(1);
+            if ((i+1) != dConditions.size() - 1) {
                 ruleString += " and ";
             }
-            ruleString += " = " + dAction;
         }
+        ruleString += " = " + dAction;
         return ruleString;
     }
     

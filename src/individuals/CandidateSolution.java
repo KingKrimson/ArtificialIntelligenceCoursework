@@ -10,9 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * abstract CandidateSolution class. Provides methods that a CandidateSolution
- * must implement. Also has a compareTo function, that allows a list of CandidateSolutions
- * to be sorted.
+ * abstract CandidateSolution class, which is an individual. Provides methods 
+ * that a CandidateSolution must implement. Also has a compareTo function, that 
+ * allows a list of CandidateSolutions to be sorted.
  * 
  * @author ad3-brown
  * @param <T>
@@ -45,7 +45,10 @@ public abstract class CandidateSolution<T> implements Comparable<CandidateSoluti
     }
     
     /**
-     * crossover signature. Takes a point to crossover on, and a CandidateSolution.
+     * crossover signature. Takes a point to crossover on, and a CandidateSolution
+     * to crossover with. To get two new individuals, call it on two parents in
+     * turn, with the other parent as a parameter.
+     * 
      * @param point
      * @param partner
      * @return
@@ -53,7 +56,7 @@ public abstract class CandidateSolution<T> implements Comparable<CandidateSoluti
     public abstract CandidateSolution crossover(int point, CandidateSolution partner);
 
     /**
-     * Mutation signature. Takes a probability.
+     * Mutation signature. Takes a probability, which is the probablity to mutate.
      * @param probability
      */
     public abstract void mutation(double probability);

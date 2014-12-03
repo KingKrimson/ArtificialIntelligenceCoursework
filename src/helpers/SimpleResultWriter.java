@@ -24,8 +24,10 @@ import java.util.Date;
 public class SimpleResultWriter {
 
     private final boolean printToConsole;
+    private final boolean variableLength;
     private final int population;
     private final int genomeLength;
+    private final int ruleLength;
     private File results;
     private BufferedWriter writer;
 
@@ -35,16 +37,27 @@ public class SimpleResultWriter {
      * 
      * @param population
      * @param genomeLength
+     * @param ruleLength
      * @param dataSet
      * @param extension
      * @param printToConsole
+     * @param variableLength 
      * @throws IOException
      */
-    public SimpleResultWriter(int population, int genomeLength, String dataSet, String extension, boolean printToConsole)
+    public SimpleResultWriter(
+            int population, 
+            int genomeLength, 
+            int ruleLength, 
+            String dataSet, 
+            String extension, 
+            boolean printToConsole, 
+            boolean variableLength)
             throws IOException {
         this.population = population;
         this.genomeLength = genomeLength;
+        this.ruleLength = ruleLength;
         this.printToConsole = printToConsole;
+        this.variableLength = variableLength;
 
         Date currentDate = new Date();
         SimpleDateFormat currentDateFormat = new SimpleDateFormat("dd_MM_yy_HH_mm_ss");
@@ -58,7 +71,8 @@ public class SimpleResultWriter {
         writer.write("sep=|"); // set excel delimiter
         writer.newLine();
         writer.write("Population|" + population + "|Genome Length|" + genomeLength);
-        writer.write("|Mutation rate|" + GeneticAlgorithm.M_RATE + "|Training percent|" + GeneticAlgorithm.TRAINING_POP);
+        writer.write("|Mutation rate|" + GeneticAlgorithm.M_RATE + "|Training percent|" 
+                + GeneticAlgorithm.TRAINING_POP);
         writer.write("|Tournament Size|" + GeneticAlgorithm.TOURNAMENT_SIZE);
         writer.newLine();
         writer.write("Generation|Best Fitness|Mean Fitness|Best Candidate");
@@ -95,11 +109,18 @@ public class SimpleResultWriter {
 
         meanFitness = totalFitness / population.size();
 
-        writer.write("" + gen + "|" + bestFitness + "|" + meanFitness + "|" + bestCandidate.getGenome().toString());
+        writer.write("" + gen + "|" + bestFitness + "|" + meanFitness + "|"
+                + bestCandidate.getGenome().toString());
         writer.newLine();
         writer.flush();
         if (printToConsole) {
-            System.out.println("Gen: " + gen + " Best Fitness: " + bestFitness + " Mean Fitness: " + meanFitness + " Best Candidate: " + bestCandidate.getGenome().toString());
+            System.out.println("Gen: " + gen + " Best Fitness: " + bestFitness
+                    + " Mean Fitness: " + meanFitness + " Best Candidate: " 
+                    + bestCandidate.getGenome().toString());
+        }
+        //For variable length rules
+        if (variableLength) {
+            bestFitness += (bestCandidate.getSize()/ruleLength);
         }
         return bestFitness;
     }
@@ -118,7 +139,12 @@ public class SimpleResultWriter {
      * @param ruleRepresentation
      * @throws IOException
      */
-    public void writeFinalResults(int realPassed, int trainingPassed, int realSize, int trainingSize, String ruleRepresentation)
+    public void writeFinalResults(
+            int realPassed, 
+            int trainingPassed, 
+            int realSize, 
+            int trainingSize, 
+            String ruleRepresentation)
             throws IOException {
         boolean pass = true;
         int totalPassed = realPassed + trainingPassed;

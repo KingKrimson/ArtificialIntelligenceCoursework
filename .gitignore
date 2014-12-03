@@ -16,7 +16,8 @@ $RECYCLE.BIN/
 
 # CSV results.
 
-results*.csv
+*.csv
+*.xlsx
 
 # build stuff
 

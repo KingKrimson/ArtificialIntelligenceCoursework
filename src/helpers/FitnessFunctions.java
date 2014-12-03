@@ -106,6 +106,49 @@ public class FitnessFunctions {
         individual.setFitness(fitness);
         return fitness;
     }
+    
+    /**
+     *
+     * calculate the fitness for the binary rule sets. The function tests the current
+     * row of the data against each rule (of 6 or 11 conditions + 1 action).
+     * if the inputs of the row match the conditions of the rule, then the predicted
+     * answer is taken to be the action of that rule. The fitness increases if the
+     * predicted answer is correct.
+     * 
+     * @param individual
+     * @param lookup
+     * @return
+     */
+    public static int calculateFitnessBinaryRuleSetPressure(CandidateSolution individual, TreeMap<String, String> lookup) {
+        int fitness = 0;
+        int ruleSize = 0;
+        RuleSet ruleSet;
+        if (lookup.size() <= 64) {
+            ruleSize = 7;
+            ruleSet = new BinaryRuleSet(individual.toString(), 7);
+        } else {
+            ruleSize = 12;
+            ruleSet = new BinaryRuleSet(individual.toString(), 12);
+        }
+        Object[] keyArray = lookup.keySet().toArray();
+
+        for (Object k : keyArray) {
+            String key = (String) k;
+            String predictedAnswer = ruleSet.testRuleSet(key);
+            String actualAnswer = lookup.get(key);
+
+            if (predictedAnswer != null && predictedAnswer.equals(actualAnswer)) {
+                fitness++;
+            }
+            if (predictedAnswer == null || predictedAnswer.equals("2")) {
+                //fitness--;
+            }  
+        }
+
+        fitness = fitness - (individual.getGenome().size()/ruleSize);
+        individual.setFitness(fitness);
+        return fitness;
+    }
 
     /**
      *
@@ -141,6 +184,46 @@ public class FitnessFunctions {
             }
         }
 
+        
+        individual.setFitness(fitness);
+        return fitness;
+    }
+    
+    /**
+     *
+     * similar to the function for the binary rule set. Each rule is tested against
+     * the current row. This time, one condition consists of two real values, which creates
+     * a range that an input must fall into to be valid. If the inputs of the row 
+     * fits a rule, then the predicted answer is the action of that rule. 
+     * fitness increases if that prediction is correct.
+     * 
+     * @param individual
+     * @param lookup
+     * @return
+     */
+    public static int calculateFitnessRealRuleSetPressure(CandidateSolution individual, TreeMap<String, String> lookup) {
+        int fitness = 0;
+        RuleSet ruleSet = new RealRuleSet(individual.getGenome(), 13);
+        Object[] keyArray = lookup.keySet().toArray();
+
+        for (Object k : keyArray) {
+            String key = (String) k;
+            List<String> stringInputList = new ArrayList<>(Arrays.asList(key.split(" ")));
+            List<Double> doubleInputList = new ArrayList<>();
+            
+            for(String s : stringInputList) {
+                doubleInputList.add(Double.parseDouble(s));
+            }
+            
+            String predictedAnswer = ruleSet.testRuleSet(doubleInputList);
+            String actualAnswer = lookup.get(key);
+
+            if (predictedAnswer != null && Double.parseDouble(predictedAnswer) == Integer.parseInt(actualAnswer)) {
+                fitness++;
+            }
+        }
+
+        fitness = fitness - (individual.getGenome().size()/13);
         individual.setFitness(fitness);
         return fitness;
     }
@@ -148,7 +231,7 @@ public class FitnessFunctions {
     /**
      * constructs a neural network using the set of real valued weights provided.
      * the input values of each row are placed into the neural network. The value
-     * that the neural net outputs is the predicted answer. Fitness increased if
+     * that the neural net outputs is the predicted answer. Fitness is increased if
      * the predicted answer is correct.
      * 
      * @param individual

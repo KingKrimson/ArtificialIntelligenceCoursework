@@ -29,9 +29,10 @@ public class Averager {
     private List<Integer> averageBest;
     private List<Integer> averageMean;
     private List<Integer> stopPoints;
+    private List<Integer> ruleSizes;
 
-    private int meanTrainingPassed;
-    private int meanRealPassed;
+    private double meanTrainingPassed;
+    private double meanRealPassed;
 
     private int number;
     private int trainingSize;
@@ -44,6 +45,9 @@ public class Averager {
         bestList = new ArrayList<>();
         meanList = new ArrayList<>();
         stopPoints = new ArrayList<>();
+        averageBest = new ArrayList<>();
+        averageMean = new ArrayList<>();
+        ruleSizes = new ArrayList<>();
         number = 0;
         meanTrainingPassed = 0;
         meanRealPassed = 0;
@@ -63,14 +67,27 @@ public class Averager {
             scan.nextLine();
         }
 
+        String[] prevData = null;
         while (scan.hasNextLine()) {
             String line = scan.nextLine();
             String[] data = line.split("\\|");
             if (data[0].equals("BEST INDIVIDUAL")) {
+                if (prevData != null) {
+                    String[] individual = prevData[3].split(",");
+                    int size = individual.length;
+                    int numberOfRules;
+                    if (size % 12 == 0) {
+                        numberOfRules = size/12;
+                    } else {
+                        numberOfRules = size/13;
+                    }
+                    ruleSizes.add(numberOfRules);
+                }
                 break;
             }
             best.add(Integer.parseInt(data[1]));
             mean.add(Integer.parseInt(data[2]));
+            prevData = data;
 
         }
         
@@ -84,6 +101,7 @@ public class Averager {
         meanTrainingPassed += Integer.parseInt(data[1]);
         bestList.add(best);
         meanList.add(mean);
+        scan.close();
     }
 
     public void averageWriteClear(String fileLocation)
@@ -98,6 +116,9 @@ public class Averager {
         bestList.clear();
         meanList.clear();
         stopPoints.clear();
+        averageBest.clear();
+        averageMean.clear();
+        ruleSizes.clear();
         number = 0;
         averageGenerations = 0;
         meanTrainingPassed = 0;
@@ -106,16 +127,16 @@ public class Averager {
 
     // average out the collected results.
     public void average() {
-        averageBest = new ArrayList<>();
-        averageMean = new ArrayList<>();
+        averageBest.clear();
+        averageMean.clear();
 
         for (List<Integer> best : bestList) {
             int point;
-            int averageSize = averageBest.size();
-            stopPoints.add(averageSize - 1);
-            for (point = 0; point < best.size(); point++) {
+            int stopPoint = best.size();
+            stopPoints.add(stopPoint);
+            for (point = 0; point < stopPoint; point++) {
                 int bestVal = best.get(point);
-                if (point < averageSize) {
+                if (point < averageBest.size()) {
                     averageBest.set(point, averageBest.get(point) + bestVal);
                 } else {
                     averageBest.add(bestVal);
@@ -132,10 +153,9 @@ public class Averager {
 
         for (List<Integer> mean : meanList) {
             int point;
-            int averageSize = averageMean.size();
             for (point = 0; point < mean.size(); point++) {
                 int meanVal = mean.get(point);
-                if (point < averageSize) {
+                if (point < averageMean.size()) {
                     averageMean.set(point, averageMean.get(point) + meanVal);
                 } else {
                     averageMean.add(meanVal);
@@ -149,7 +169,9 @@ public class Averager {
         for (int i = 0; i < averageBest.size(); i++) {
             while (i > stopGen) {
                 divisor--;
-                stopGen = stopPoints.get(++stopIndex);
+                if ((stopIndex+1) < stopPoints.size()) {
+                    stopGen = stopPoints.get(++stopIndex);
+                }
             }
             int bestValue = averageBest.get(i);
             int bestMean = (bestValue / divisor);
@@ -167,10 +189,10 @@ public class Averager {
     // write the collected averages.
     public void write(String fileString)
             throws IOException {
-        int meanTrainingFailed = trainingSize - meanTrainingPassed;
-        int meanRealFailed = realSize - meanRealPassed;
-        int meanTotalPassed = meanTrainingPassed + meanRealPassed;
-        int meanTotalFailed = (trainingSize + realSize) - meanTotalPassed;
+        double meanTrainingFailed = trainingSize - meanTrainingPassed;
+        double meanRealFailed = realSize - meanRealPassed;
+        double meanTotalPassed = meanTrainingPassed + meanRealPassed;
+        double meanTotalFailed = (trainingSize + realSize) - meanTotalPassed;
 
         DecimalFormat df = new DecimalFormat("#.##");
 
@@ -181,8 +203,16 @@ public class Averager {
         String totalPercentagePass = df.format((double) meanTotalPassed / (trainingSize + realSize) * 100);
         String totalPercentageFail = df.format(100 - Double.valueOf(totalPercentagePass));
 
-        File results = new File("results/" + fileString);
+        File results = new File("results/" + fileString + ".csv");
 
+        
+        double averageRuleSize = 0;
+        
+        for (int ruleSize : ruleSizes) {
+            averageRuleSize += ruleSize;
+        }
+        averageRuleSize = (double)(averageRuleSize)/number;
+        
         BufferedWriter writer = new BufferedWriter(new FileWriter(results));
         writer.write("sep=|"); // set excel delimiter
         writer.newLine();
@@ -193,6 +223,10 @@ public class Averager {
         writer.write("LONGEST RUN STOPPED AT|" + stopPoints.get(stopPoints.size() - 1));
         writer.newLine();
         writer.write("AVERAGE GENERATION|" + averageGenerations);
+        writer.newLine();
+        writer.write("RULE SIZES|" + ruleSizes.toString());
+        writer.newLine();
+        writer.write("AVERAGE RULE SIZE|" + averageRuleSize);
         writer.newLine();
         writer.write("Generation|Best Fitness|Mean Fitness");
         writer.newLine();

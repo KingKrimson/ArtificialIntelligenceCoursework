@@ -86,7 +86,7 @@ public class MLPCandidateSolution extends CandidateSolution<Double> {
         //System.out.println("CROSSOVER POINT: " + point);
         ArrayList<Double> childGenome = new ArrayList<>(this.size);
         childGenome.addAll(this.getGenome().subList(0, point));
-        childGenome.addAll(partner.getGenome().subList(point, genome.size()));
+        childGenome.addAll(partner.getGenome().subList(point, partner.getSize()));
         
         CandidateSolution child = new MLPCandidateSolution(childGenome);
         return child;

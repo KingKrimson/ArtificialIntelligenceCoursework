@@ -5,13 +5,17 @@
  */
 package individuals;
 
+import helpers.GenomeHelper;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
 /**
- *
+ * An individual consisting of several real valued numbers between 0 and 1. These
+ * numbers generate a range which a input value must fall into, or a potential output
+ * of 1 or 0. Converted into a realRuleSet in the fitness function.
+ * 
  * @author Andrew
  */
 public class RealRuleSetCandidateSolution extends CandidateSolution<Double> {
@@ -28,15 +32,18 @@ public class RealRuleSetCandidateSolution extends CandidateSolution<Double> {
     }
 
     /**
-     *
+     * Attempt to try each mutation operator.
      * @param probability
      */
     @Override
     public void mutation(double probability) {
+        // generate mutation for variable rules.
+        probability = (double)(1) / (size/ruleSize);    
+        ruleSizeMutation(probability);
         shuffleMutation(probability);
         // modify the probablilty so that it's proportional to the overall length
         // of the genome, rather than the number of rules in the genome.
-        double geneProbability = probability / (size / ruleSize);
+        double geneProbability = (probability * (size / ruleSize))/size;
         geneCreepMutation(geneProbability);
     }
 
@@ -53,10 +60,12 @@ public class RealRuleSetCandidateSolution extends CandidateSolution<Double> {
         if (rand < probabilty) {
             ArrayList<Double> newGenome = new ArrayList<>();
             ArrayList<List<Double>> shuffle = new ArrayList<>();
+            // add each rule, stored in it's own list, into another list.
             for (int i = 0; i < genome.size(); i = (i + ruleSize)) {
                 List<Double> subList = genome.subList(i, (i + ruleSize));
                 shuffle.add(subList);
             }
+            // shuffle the rules, and then add them back into the genome.
             Collections.shuffle(shuffle);
             for (List<Double> rule : shuffle) {
                 newGenome.addAll(rule);
@@ -103,6 +112,28 @@ public class RealRuleSetCandidateSolution extends CandidateSolution<Double> {
             }
         }
     }
+    
+    /**
+     * add or remove a rule from the ruleset, depending on the probability.
+     * 
+     * @param probabilty
+     */
+    public void ruleSizeMutation(double probabilty) {
+        Random randGen = new Random();
+        double rand = randGen.nextDouble();
+
+        if (rand < probabilty) {
+            rand = randGen.nextDouble();
+            if (rand < 0.5) {
+                List newRule = GenomeHelper.generateRealRuleGenome(1, ruleSize);
+                genome.addAll(newRule);
+            } else {
+                // delete rule
+                this.genome = genome.subList(0, (genome.size() - ruleSize));
+            }
+            setSize(genome.size());
+        }
+    }
 
     /**
      * Given another CandidateSolution and a point to crossover, perform the
@@ -119,17 +150,15 @@ public class RealRuleSetCandidateSolution extends CandidateSolution<Double> {
     @Override
     public CandidateSolution crossover(int point, CandidateSolution partner) {
 
-        // should throw exception here?
-        if (this.size != partner.size) {
-            return partner;
-        }
+        // don't compare genome lengths, to allow variable rules
+        
         //System.out.println(""); 
         //System.out.println("\nPARENT 1: " + this.getGenome().toString());
         //System.out.println("PARENT 2:" + partner.getGenome().toString());
         //System.out.println("CROSSOVER POINT: " + point);
         ArrayList<Double> childGenome = new ArrayList<>(this.size);
         childGenome.addAll(this.getGenome().subList(0, point));
-        childGenome.addAll(partner.getGenome().subList(point, genome.size()));
+        childGenome.addAll(partner.getGenome().subList(point, partner.getSize()));
 
         CandidateSolution child = new RealRuleSetCandidateSolution(childGenome);
         //System.out.println("CHILD: " + child.getGenome().toString()\n);
