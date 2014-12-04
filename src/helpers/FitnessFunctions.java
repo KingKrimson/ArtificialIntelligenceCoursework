@@ -109,11 +109,8 @@ public class FitnessFunctions {
     
     /**
      *
-     * calculate the fitness for the binary rule sets. The function tests the current
-     * row of the data against each rule (of 6 or 11 conditions + 1 action).
-     * if the inputs of the row match the conditions of the rule, then the predicted
-     * answer is taken to be the action of that rule. The fitness increases if the
-     * predicted answer is correct.
+     * Same as calculateFitnessBinaryRuleSet, except the number of rules in an individual
+     * is subtracted from the overall fitness, to encourage smaller rule sizes.
      * 
      * @param individual
      * @param lookup
@@ -191,11 +188,8 @@ public class FitnessFunctions {
     
     /**
      *
-     * similar to the function for the binary rule set. Each rule is tested against
-     * the current row. This time, one condition consists of two real values, which creates
-     * a range that an input must fall into to be valid. If the inputs of the row 
-     * fits a rule, then the predicted answer is the action of that rule. 
-     * fitness increases if that prediction is correct.
+     * Same as calculateFitnessRealRuleSet, except the number of rules in an individual
+     * is subtracted from the overall fitness, to encourage smaller rule sizes.
      * 
      * @param individual
      * @param lookup

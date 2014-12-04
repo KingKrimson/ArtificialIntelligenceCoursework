@@ -100,12 +100,11 @@ public class GeneticAlgorithm {
      */
     public static void main(String[] args) {
         try {
-            //prototypeSet(FitnessType.TOTAL_VALUE, GenomeType.BIT, SelectionType.TOURNAMENT);
-            //dataSet1(FitnessType.LOOKUP_TABLE, GenomeType.BIT, SelectionType.TOURNAMENT);
-            //dataSet1(FitnessType.RULE_SET_INT, GenomeType.RULE_SET, SelectionType.TOURNAMENT);
-            //dataSet2(FitnessType.RULE_SET_INT, GenomeType.RULE_SET, SelectionType.TOURNAMENT);
-            //dataSet3(FitnessType.MLP, GenomeType.MLP, SelectionType.TOURNAMENT);
-
+            // run each dataset several times with varying parameters.
+            runDataSet1Fiddles();
+            runDataSet2Fiddles();
+            runDataSet3Fiddles();
+            
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -138,11 +137,13 @@ public class GeneticAlgorithm {
         geneticAlgorithm(initialGeneration, null, fit, sel, resultWriter);
     }
 
-    // BEST SETTINGS SO FAR: POP 100, G_LENGTH 10, STOP_GENERATIONS 100
     /**
      *
      * Run dataset1, which can be represented as a string that maps onto the
-     * output of a lookup table, or as a rule set.
+     * output of a lookup table, or as a rule set. Splits the test data into a training
+     * and test set, and then runs the GA for dataset 1. After the best solution is found,
+     * it's tested against the test data to determine how well it interpreted
+     * the problem set.
      *
      * @param fit specific fitness type
      * @param genome type of genome to use
@@ -189,7 +190,8 @@ public class GeneticAlgorithm {
                     FitnessFunctions.calculateFitnessLookupTable(individual, trainingData);
                     break;
                 case RULE_SET:
-                    individual = new BinaryRuleSetCandidateSolution(GenomeHelper.generateBinaryRuleGenome(G_LENGTH, 7)); // generate G_LENGTH rules.
+                    // generate G_LENGTH rules.
+                    individual = new BinaryRuleSetCandidateSolution(GenomeHelper.generateBinaryRuleGenome(G_LENGTH, 7)); 
                     FitnessFunctions.calculateFitnessBinaryRuleSet(individual, trainingData);
                     break;
                 default:
@@ -206,7 +208,10 @@ public class GeneticAlgorithm {
     }
 
     /**
-     * Run dataset2, which can be represented as a rule set.
+     * Run dataset2, which can be represented as a rule set. Splits the test data 
+     * into a training and test set, and then runs the GA for dataset 2.
+     * After the best solution is found, it's tested against the test data to 
+     * determine how well it interpreted the problem set.
      *
      * @param fit specific fitness type
      * @param genome type of genome to use
@@ -262,7 +267,10 @@ public class GeneticAlgorithm {
     /**
      *
      * run dataset 3, which can be represented as either a rule set or a set of
-     * weights for a multi-layer perceptron.
+     * weights for a multi-layer perceptron. Splits the test data into a training
+     * and test set, and then runs the GA for dataset 3. After the best solution 
+     * is found, it's tested against the test data to determine how well it interpreted
+     * the problem set.
      *
      * @param fit specific fitness type
      * @param genome type of genome to use
@@ -326,7 +334,10 @@ public class GeneticAlgorithm {
 
     /**
      *
-     * The genetic algorithm entry point.
+     * The genetic algorithm entry point. Creates the initial population, then loops
+     * until the max number of generations or the stop condtion is reached.
+     * Calls newGeneration to generate the next generation by using selection,
+     * crossover, and mutation.  Returns the best solution. 
      *
      * @param oldGeneration initial generation
      * @param lookup lookup table containing the inputs and expected values
@@ -397,9 +408,16 @@ public class GeneticAlgorithm {
 
     /**
      *
-     * Generate a new generation from an old generation. parents are selected
-     * from the old generation, and children are created by using crossover and
-     * mutation on the parents.
+     * Generate a new generation from an old generation. The most important part of a
+     * GA. parents are selected from the old generation using tournament or roulette, 
+     * and children are created by using crossover and mutation on the parents. 
+     * each child is passed to the appropriate fitness function for it's representation, 
+     * which calculates the fitness and stores it in the child, and then the child is
+     * added to the new generation.
+     * 
+     * This fitness function uses elitism, which means it keeps a certain percentage
+     * of the best individuals from the old generation in the new generation,
+     * to avoid losing the best solutions.
      *
      * @param oldGeneration old generation from which the new one is created
      * @param percentToKeep keep a percentage of the best parents from the old
@@ -418,7 +436,7 @@ public class GeneticAlgorithm {
         ArrayList<CandidateSolution> parents;
         ArrayList<CandidateSolution> newGeneration = new ArrayList<>();
 
-        // keep the best solutions, as determined by PERCENT_TO_KEEP
+        // Elitism. Keep the best solutions, as determined by PERCENT_TO_KEEP
         int numberToKeep = (int) (PERCENT_TO_KEEP * oldGeneration.size());
         ArrayList<CandidateSolution> best = new ArrayList<>();
         if (numberToKeep > 0) {
